@@ -7,8 +7,8 @@ public class Grid : MonoBehaviour {
 	public int grid_ID = -1;
 	public PlayerOnGrid player;
 
-	int columns = 9;
-	int rows = 7;
+	int columns = 7;
+	int rows = 9;
 
 	[SerializeField]
 	Transform tileContainer;
@@ -28,14 +28,14 @@ public class Grid : MonoBehaviour {
 	}
 
 	void Init_Tiles() {
-		for (int i = 0; i < columns; i++) {
+		for (int i = 0; i < rows; i++) {
 			tiles.Add(new List<Tile>());
 			
-			for (int j = 0; j < rows; j++) {
-				tiles[i].Add(tileContainer.GetChild(i * rows + j).GetComponentInChildren<Tile>());
+			for (int j = 0; j < columns; j++) {
+				tiles[i].Add(tileContainer.GetChild(i * columns + j).GetComponentInChildren<Tile>());
 				tiles[i][j].grid = this;
-				tiles[i][j].name = "Tile #" + (i * rows + j);
-				tiles[i][j].tile_ID = (i * rows + j);
+				tiles[i][j].name = "Tile #" + (i * columns + j);
+				tiles[i][j].tile_ID = (i * columns + j);
 			}
 		}
 	}
@@ -55,8 +55,8 @@ public class Grid : MonoBehaviour {
 	}
 
 	public Tile Get_Tile_by_ID(int tile_ID) {
-		int row = tile_ID / rows;
-		int column = tile_ID % rows;
+		int row = tile_ID / columns;
+		int column = tile_ID % columns;
 
 		//Debug.Log("tile_ID: " + tile_ID);
 		//Debug.Log("tiles[row][column] ~ tiles[" + row + "][" + column + "]: " + tiles[row][column]);
@@ -99,8 +99,8 @@ public class Grid : MonoBehaviour {
 	}
 
 	public void Spawn_Line_Of_Balls(int[] colors) {
-		for (int i = columns - 1; i >= 0; i--) {
-			for (int j = rows - 1; j >= 0; j--) {
+		for (int i = rows - 1; i >= 0; i--) {
+			for (int j = columns - 1; j >= 0; j--) {
 				tiles[i][j].Move_Down();
 			}
 		}
@@ -153,12 +153,87 @@ public class Grid : MonoBehaviour {
 			return;
 		}
 
+		Tile tile = null;
 		for (int i = 0; i < quantity; i++) {
-			Tile tile = Get_First_Vacant_Tile_In_Column(column);
+			tile = Get_First_Vacant_Tile_In_Column(column);
 			if (tile != null) {
 				tile.Activate_Ball(color);
 			}
 		}
+		
+		if (tile != null) {
+			StartCoroutine(Check_For_Match(tile.tile_ID));
+		}
+	}
+
+	IEnumerator Check_For_Match(int tile_ID) {
+		foreach (Tile tl in Get_Adjacent_Same_Color(Get_Tile_by_ID(tile_ID))) {
+			//tl.Deactivate_Ball();
+			tl.ballColor = BallColor.NONE;
+		}
+
+		yield break;
+		//yield return new WaitForSeconds(1.0f);
+	}
+
+	List<Tile> Get_Adjacent_Same_Color(Tile tile) {
+		List<Tile> marked = new List<Tile>() { tile };
+		Debug.Log("Tile Color: " + tile.ballColor);
+		BallColor color = tile.ballColor;
+		Tile next_tile;
+		
+		int k = 0;
+
+		while (true) {
+			next_tile = marked[k];
+
+			foreach (Tile tl in Get_Adjacent_Tiles(next_tile)) {
+				//Debug.Log("<color=gray>Testing " + tl + " (added by " + next_tile + ")</color>");
+				if (tl.ballColor == color &&
+					tl.hasBall &&
+					!marked.Contains(tl)) {
+					//Debug.Log("<color=green>Added: " + tl + " by " + next_tile + ".</color>\n" + tl + " is " + tl.ballColor + "\n" + next_tile + " is " + next_tile.ballColor);
+					marked.Add(tl);
+				}
+			}
+
+			k++;
+			if (k >= marked.Count) {
+				break;
+			}
+		}
+
+		return marked;
+	}
+
+	List<Tile> Get_Adjacent_Tiles(Tile tile) {
+		List<Tile> aux = new List<Tile>();
+		int i = tile.tile_ID / columns; //linha
+		int j = tile.tile_ID % columns; //coluna
+
+		//Debug.Log("<b>rows: </b>" + rows);
+		//Debug.Log("<b>columns: </b>" + columns);
+
+		if (i > 0) {
+			aux.Add(tiles[i - 1][j]);
+		}
+		if (j > 0) {
+			aux.Add(tiles[i][j - 1]);
+		}
+		if (i < rows - 1) {
+			aux.Add(tiles[i + 1][j]);
+		}
+		if (j < columns - 1) {
+			aux.Add(tiles[i][j + 1]);
+		}
+
+		//string s = "<b>Adjacents to Tile #" + tile.tile_ID + "</b>\n";
+		//foreach (Tile tl in aux) {
+		//	s += "Tile #" + tl.tile_ID + ", ";
+		//}
+		//Debug.Log(s);
+
+		return aux;
 	}
 
 	#endregion
