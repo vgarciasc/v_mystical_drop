@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.Networking;
+using UnityEngine.UI;
 using UnityEngine;
 using DG.Tweening;
 
@@ -15,10 +16,8 @@ public enum Command {
 }
 
 public class PlayerOnGrid : NetworkBehaviour {
-	[SyncVar]
-	public bool all_set = false;
-	[SyncVar]
-	public int player_ID;
+	[SyncVar(hook ="CallHook")]
+	public int player_ID = -1;
 	[SyncVar]
 	public int current_column = -1;
 	[SyncVar]
@@ -28,37 +27,51 @@ public class PlayerOnGrid : NetworkBehaviour {
 
 	[SerializeField]
 	Grid grid;
+	[SerializeField]
+	Image ball;
 
 	public override void OnStartLocalPlayer() {
-		int number_players = 0;
+		int length = GameObject.FindGameObjectsWithTag("Player").Length;
 
-		foreach (GameObject aux in GameObject.FindGameObjectsWithTag("Player")) {
-			if (aux.GetComponentInChildren<PlayerOnGrid>().all_set) {
-				number_players++;
-			}
+		if (length == 1) {
+			player_ID = 0;
+			Cmd_Set_ID(0);
+		}
+		else {
+			Cmd_Set_ID(length - 1);
+			player_ID = length - 1;
 		}
 
-		Set_ID(number_players);
-
-		grid = GameObject.FindGameObjectsWithTag("Grid")[number_players].GetComponent<Grid>();
+		grid = GameObject.FindGameObjectsWithTag("Grid")[player_ID].GetComponent<Grid>();
 		grid.grid_ID = player_ID;
 		grid.player = this;
 
-		Move(grid.Get_Player_Initial_Position());
+		Cmd_Move(grid.Get_Player_Initial_Position().tile_ID);
+	}
+
+	void CallHook(int num) {
+		Debug.Log("New player connected! Player ID: #" + num);
+		grid = GameObject.FindGameObjectsWithTag("Grid")[num].GetComponent<Grid>();
 	}
 
 	void Start() {
 		this.transform.SetParent(GameObject.FindGameObjectWithTag("Canvas").transform, false);
+		grid = GameObject.FindGameObjectsWithTag("Grid")[player_ID].GetComponent<Grid>();
 
-		Move(GameObject.FindGameObjectsWithTag("Grid")[player_ID].GetComponent<Grid>().Get_Player_Initial_Position());
+		if (isLocalPlayer) {
+			Cmd_Move(grid.Get_Player_Initial_Position().tile_ID);
+		}
 	}
 
-	void Set_ID(int ID) {
+	[Command]
+	void Cmd_Set_ID(int ID) {
 		player_ID = ID;
-		all_set = true;
 	}
 
 	void Update() {
+		ball.enabled = quantity_carried > 0;
+		ball.color = Tile.Get_Ball_Color(color_carried);
+
 		if (!isLocalPlayer)
 			return;
 
@@ -95,19 +108,48 @@ public class PlayerOnGrid : NetworkBehaviour {
 
 	void Receive_Command(Command cmd) {
 		if (cmd == Command.GRAB) {
-			grid.Player_Grab(this);
+			Cmd_Player_Grab();
 		}
 
-//		if (cmd == Command.THROW) {
-//			grid.Throw(this);
-//		}
+		//		if (cmd == Command.THROW) {
+		//			grid.Throw(this);
+		//		}
 
-		Move(grid.Get_Player_New_Tile(this, cmd));
+		if (cmd == Command.MOVE_DOWN || cmd == Command.MOVE_UP ||
+		cmd == Command.MOVE_LEFT || cmd == Command.MOVE_RIGHT) {
+			Cmd_Move(grid.Get_Player_New_Tile(this, cmd).tile_ID);
+		}
 	}
 
-	void Move(Tile dest) {
+	[ClientRpc]
+	void Rpc_Move(int dest_tile_ID) {
+		Tile dest = grid.Get_Tile_by_ID(dest_tile_ID);
+		this.transform.DOMove(dest.transform.position, 0.1f);
+	}
+
+	[Command]
+	void Cmd_Move(int dest_tile_ID) {
+		Tile dest = grid.Get_Tile_by_ID(dest_tile_ID);
+
 		current_column = (dest.tile_ID) % 7;
 		this.transform.DOMove(dest.transform.position, 0.1f);
+
+		Rpc_Move(dest_tile_ID);
+	}
+
+	[Command]
+	void Cmd_Player_Grab() {
+		Tile ball_tile = grid.Get_Ball_Nearest_Player(this);
+
+		if (ball_tile != null &&
+			(this.color_carried == ball_tile.ballColor ||
+			this.color_carried == BallColor.NONE)) {
+
+			this.color_carried = ball_tile.ballColor;
+			this.quantity_carried++;
+
+			ball_tile.Deactivate_Ball();
+		}
 	}
 
 	public static int Get_Local_Player_ID() {

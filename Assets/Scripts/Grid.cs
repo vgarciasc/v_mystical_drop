@@ -54,6 +54,16 @@ public class Grid : MonoBehaviour {
 		return tiles[tiles.Count - 1];
 	}
 
+	public Tile Get_Tile_by_ID(int tile_ID) {
+		int row = tile_ID / rows;
+		int column = tile_ID % rows;
+
+		//Debug.Log("tile_ID: " + tile_ID);
+		//Debug.Log("tiles[row][column] ~ tiles[" + row + "][" + column + "]: " + tiles[row][column]);
+
+		return tiles[row][column];
+	}
+
 	public Tile Get_Tile_Down(Tile tile) {
 		foreach (List<Tile> list_tile in tiles) {
 			if (list_tile.Contains(tile) && list_tile != Get_Last_Row()) {
@@ -121,21 +131,6 @@ public class Grid : MonoBehaviour {
 		}
 
 		return aux;
-	}
-
-	public bool Player_Grab(PlayerOnGrid player) {
-		Tile ball_tile = Get_Ball_Nearest_Player(player);
-
-		if (ball_tile != null/* &&
-			player.color_carried == ball_tile.ballColor &&
-			player.quantity_carried < 3*/) {
-
-//			player.quantity_carried++;
-			ball_tile.Deactivate_Ball();
-			return true;
-		}
-
-		return false;
 	}
 
 	#endregion

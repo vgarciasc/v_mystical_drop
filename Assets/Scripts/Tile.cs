@@ -28,38 +28,16 @@ public class Tile : NetworkBehaviour {
 	}
 
 	void Update() {
-		Color aux = Color.white;
-		switch (ballColor) {
-
-			case BallColor.GRAY:
-				aux = Color.gray;
-				break;	
-
-			case BallColor.GREEN:
-				aux = Color.green;
-				break;	
-		}
-
 		ballSprite.enabled = hasBall;
-		ballSprite.color = aux;
+		ballSprite.color = Get_Ball_Color(ballColor);
 	}
 
 	public void Activate_Ball(BallColor color) {
 		ballColor = color;
 		hasBall = true;
 
-		Color aux = Color.white;
-		switch (color) {
-			case BallColor.GRAY:
-				aux = Color.gray;
-				break;	
-			case BallColor.GREEN:
-				aux = Color.green;
-				break;	
-		}
-
 		ballSprite.enabled = true;
-		ballSprite.color = aux;
+		ballSprite.color = Get_Ball_Color(ballColor);
 	}
 
 	public void Deactivate_Ball() {
@@ -77,5 +55,20 @@ public class Tile : NetworkBehaviour {
 				down.Activate_Ball(ballColor);
 			}
 		}
+	}
+
+	public static Color Get_Ball_Color(BallColor ball) {
+		Color aux = Color.white;
+
+		switch (ball) {
+			case BallColor.GRAY:
+				aux = Color.gray;
+				break;
+			case BallColor.GREEN:
+				aux = Color.green;
+				break;
+		}
+
+		return aux;
 	}
 }
