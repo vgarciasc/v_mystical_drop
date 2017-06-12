@@ -111,22 +111,32 @@ public class PlayerOnGrid : NetworkBehaviour {
 			Cmd_Player_Grab();
 		}
 
-		//		if (cmd == Command.THROW) {
-		//			grid.Throw(this);
-		//		}
+		if (cmd == Command.THROW) {
+			Cmd_Player_Throw();
+		}
 
 		if (cmd == Command.MOVE_DOWN || cmd == Command.MOVE_UP ||
-		cmd == Command.MOVE_LEFT || cmd == Command.MOVE_RIGHT) {
+		 cmd == Command.MOVE_LEFT || cmd == Command.MOVE_RIGHT) {
 			Cmd_Move(grid.Get_Player_New_Tile(this, cmd).tile_ID);
 		}
 	}
 
-	[ClientRpc]
-	void Rpc_Move(int dest_tile_ID) {
-		Tile dest = grid.Get_Tile_by_ID(dest_tile_ID);
-		this.transform.DOMove(dest.transform.position, 0.1f);
+	#region Throw
+	[Command]
+	void Cmd_Player_Throw() {
+		grid.Insert_Ball(current_column, quantity_carried, color_carried);
+
+		color_carried = BallColor.NONE;
+		quantity_carried = 0;
 	}
 
+	[ClientRpc]
+	void Rpc_Player_Throw() {
+		grid.Insert_Ball(current_column, quantity_carried, color_carried);
+	}
+	#endregion
+
+	#region Movement
 	[Command]
 	void Cmd_Move(int dest_tile_ID) {
 		Tile dest = grid.Get_Tile_by_ID(dest_tile_ID);
@@ -137,6 +147,14 @@ public class PlayerOnGrid : NetworkBehaviour {
 		Rpc_Move(dest_tile_ID);
 	}
 
+	[ClientRpc]
+	void Rpc_Move(int dest_tile_ID) {
+		Tile dest = grid.Get_Tile_by_ID(dest_tile_ID);
+		this.transform.DOMove(dest.transform.position, 0.1f);
+	}
+	#endregion
+
+	#region Grab
 	[Command]
 	void Cmd_Player_Grab() {
 		Tile ball_tile = grid.Get_Ball_Nearest_Player(this);
@@ -148,9 +166,32 @@ public class PlayerOnGrid : NetworkBehaviour {
 			this.color_carried = ball_tile.ballColor;
 			this.quantity_carried++;
 
+			Rpc_Player_Grab(ball_tile.tile_ID);
+
+			Grab_Ball_Movement(ball_tile.tile_ID);
 			ball_tile.Deactivate_Ball();
 		}
 	}
+
+	[ClientRpc]
+	void Rpc_Player_Grab(int tile_ID) {
+		Grab_Ball_Movement(tile_ID);
+	}
+
+	void Grab_Ball_Movement(int tile_ID) {
+		GameObject ball = grid.Get_Tile_by_ID(tile_ID).Instantiate_Ball_For_Anim();
+
+		ball.transform.DOMove(this.transform.position, 0.1f);
+		ball.transform.DOScale(new Vector2(0.1f, 0.1f), 0.1f);
+
+		StartCoroutine(Destroy_Ball(ball, 0.1f));
+	}
+
+	IEnumerator Destroy_Ball(GameObject ball, float duration) {
+		yield return new WaitForSeconds(duration);
+		Destroy(ball.gameObject);
+	}
+	#endregion
 
 	public static int Get_Local_Player_ID() {
 		foreach (GameObject player in GameObject.FindGameObjectsWithTag("Player")) {

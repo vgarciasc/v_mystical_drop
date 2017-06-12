@@ -133,5 +133,33 @@ public class Grid : MonoBehaviour {
 		return aux;
 	}
 
+	Tile Get_First_Vacant_Tile_In_Column(int column) {
+		Tile aux;
+
+		for (int i = 0; i < rows; i++) {
+			aux = tiles[i][column];
+
+			if (!aux.hasBall) {
+				return aux;
+			}
+		}
+
+		Debug.Log("This should not be happening.");
+		return null;
+	}
+
+	public void Insert_Ball(int column, int quantity, BallColor color) {
+		if (color == BallColor.NONE) {
+			return;
+		}
+
+		for (int i = 0; i < quantity; i++) {
+			Tile tile = Get_First_Vacant_Tile_In_Column(column);
+			if (tile != null) {
+				tile.Activate_Ball(color);
+			}
+		}
+	}
+
 	#endregion
 }

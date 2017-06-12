@@ -17,6 +17,8 @@ public class Tile : NetworkBehaviour {
 	[Header("Ball")]
 	[SerializeField]
 	Image ballSprite;
+	[SerializeField]
+	GameObject ballPrefab;
 
 	[SyncVar]
 	public BallColor ballColor;
@@ -68,6 +70,14 @@ public class Tile : NetworkBehaviour {
 				aux = Color.green;
 				break;
 		}
+
+		return aux;
+	}
+
+	public GameObject Instantiate_Ball_For_Anim() {
+		GameObject aux = Instantiate(ballPrefab, this.transform.parent.parent, false);
+		aux.GetComponentInChildren<Image>().color = Get_Ball_Color(ballColor);
+		aux.transform.position = this.transform.position;
 
 		return aux;
 	}

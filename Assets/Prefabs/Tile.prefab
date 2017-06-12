@@ -80,6 +80,7 @@ MonoBehaviour:
   tile_ID: -1
   grid: {fileID: 0}
   ballSprite: {fileID: 114417698978004152}
+  ballPrefab: {fileID: 1960209550266104, guid: 65ff2ea31b8b25a4f969c9eb64774cbc, type: 2}
   ballColor: 0
   hasBall: 0
 --- !u!114 &114417698978004152
