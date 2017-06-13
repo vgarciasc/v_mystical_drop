@@ -19,12 +19,32 @@ public class Grid : MonoBehaviour {
 	#region initialization
 	void Start () {
 		Init_Tiles();
+
+		//if (Is_Local_Grid()) {
+		//	StartCoroutine(Spawn_Lines());
+		//}
+	}
+
+	IEnumerator Spawn_Lines() {
+		float delay = 2f;
+		int time = 0;
+
+		while (true) {
+			yield return new WaitForSeconds(delay);
+			time++;
+
+			Request_Spawn_Line_Of_Balls();
+		}
 	}
 
 	void Update() {
-		if (Input.GetKeyDown(KeyCode.Z) && grid_ID == PlayerOnGrid.Get_Local_Player_ID()) {
+		if (Input.GetKeyDown(KeyCode.Z) && Is_Local_Grid()) {
 			Request_Spawn_Line_Of_Balls();
 		}
+	}
+
+	bool Is_Local_Grid() {
+		return grid_ID == PlayerOnGrid.Get_Local_Player_ID();
 	}
 
 	void Init_Tiles() {
@@ -76,6 +96,17 @@ public class Grid : MonoBehaviour {
 		return null;
 	}
 
+	public Tile Get_Tile_Up(Tile tile) {
+		int row = tile.tile_ID / columns;
+		int column = tile.tile_ID % columns;
+
+		if (row > 0) {
+			return tiles[row - 1][column];
+		}
+
+		return null;
+	}
+
 	public Tile Get_Ball_Nearest_Player(PlayerOnGrid player) {
 		for (int i = rows - 1; i >= 0; i--) {
 			Tile aux = tiles[i][player.current_column];
@@ -92,7 +123,7 @@ public class Grid : MonoBehaviour {
 	public void Request_Spawn_Line_Of_Balls() {
 		int[] ball_colors = new int[columns];
 		for (int i = 0; i < columns; i++) {
-			ball_colors[i] = Random.Range(0, 2);
+			ball_colors[i] = Random.Range(0, System.Enum.GetValues(typeof(BallColor)).Length - 1) ;
 		}
 
 		player.Cmd_Spawn_Line_Of_Balls(grid_ID, ball_colors);
@@ -162,23 +193,59 @@ public class Grid : MonoBehaviour {
 		}
 		
 		if (tile != null) {
-			StartCoroutine(Check_For_Match(tile.tile_ID));
+			Check_For_Match(tile.tile_ID);
 		}
 	}
 
-	IEnumerator Check_For_Match(int tile_ID) {
-		foreach (Tile tl in Get_Adjacent_Same_Color(Get_Tile_by_ID(tile_ID))) {
-			//tl.Deactivate_Ball();
-			tl.ballColor = BallColor.NONE;
+	void Check_For_Match(int tile_ID) {
+		List<Tile> adjacent_tiles = Get_Adjacent_Same_Color(Get_Tile_by_ID(tile_ID));
+
+		if (adjacent_tiles.Count > 2) {
+			foreach (Tile tl in adjacent_tiles) {
+				tl.Deactivate_Ball();
+			}
 		}
 
-		yield break;
-		//yield return new WaitForSeconds(1.0f);
+		Update_Board();
+	}
+
+	void Update_Board() {
+		List<Tile> marked = new List<Tile>();
+
+		for (int i = 0; i < rows; i++) {
+			for (int j = 0; j < columns; j++) {
+				Tile aux = tiles[i][j];
+
+				if (aux.hasBall) {
+					continue;
+				}
+
+				Tile below = Get_Ball_Below(aux);
+
+				if (below != null) {
+					below.Move_To(aux.tile_ID);
+				}
+			}
+		}
+	}
+
+	Tile Get_Ball_Below(Tile tile) {
+		int row = tile.tile_ID / columns;
+		int column = tile.tile_ID % columns;
+
+		for (int i = row; i < rows - 1; i++) {
+			Tile aux = tiles[i][column];
+			if (aux.hasBall) {
+				return aux;
+			}
+		}
+
+		//Debug.Log("No ball below " + tile + ".");
+		return null;
 	}
 
 	List<Tile> Get_Adjacent_Same_Color(Tile tile) {
 		List<Tile> marked = new List<Tile>() { tile };
-		Debug.Log("Tile Color: " + tile.ballColor);
 		BallColor color = tile.ballColor;
 		Tile next_tile;
 		

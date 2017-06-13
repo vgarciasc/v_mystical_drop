@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using UnityEngine.UI;
 using UnityEngine.Networking;
 using UnityEngine;
+using DG.Tweening;
 
 public enum BallColor {
-	GRAY,
+	RED,
+	BLUE,
 	GREEN,
+	YELLLOW,
 	NONE
 }
 
@@ -59,15 +62,67 @@ public class Tile : NetworkBehaviour {
 		}
 	}
 
+	public void Move_Up() {
+		if (hasBall) {
+			Tile up = grid.Get_Tile_Up(this);
+
+			if (up != null &&
+				!up.hasBall) {
+				Deactivate_Ball();
+				up.Activate_Ball(ballColor);
+			}
+		}
+	}
+
+	public void Move_To(int tile_ID) {
+		StartCoroutine(Move_To(grid.Get_Tile_by_ID(tile_ID)));
+
+		Cmd_Move_To(tile_ID);
+	}
+
+	[Command]
+	void Cmd_Move_To(int tile_ID) {
+		Rpc_Move_To(tile_ID);
+	}
+
+	[ClientRpc]
+	void Rpc_Move_To(int tile_ID) {
+		StartCoroutine(Move_To(grid.Get_Tile_by_ID(tile_ID)));
+	}
+
+	public IEnumerator Move_To(Tile tile) {
+		BallColor color = ballColor;
+		GameObject ball = Instantiate_Ball_For_Anim();
+		float delay = 0.1f * Mathf.Abs((tile_ID - tile.tile_ID) / 7);
+		ball.transform.DOMove(tile.transform.position, delay);
+
+		Deactivate_Ball();
+
+		yield return new WaitForSeconds(delay);
+
+		Destroy(ball);
+		tile.Activate_Ball(color);
+	}
+
 	public static Color Get_Ball_Color(BallColor ball) {
 		Color aux = Color.white;
 
 		switch (ball) {
-			case BallColor.GRAY:
-				aux = Color.gray;
+			case BallColor.YELLLOW:
+				aux = Color.yellow;
+				aux += new Color(0.3f, 0.3f, 0.3f);
+				break;
+			case BallColor.RED:
+				aux = Color.red;
+				aux += new Color(0f, 0.3f, 0.3f);
+				break;
+			case BallColor.BLUE:
+				aux = Color.blue;
+				aux += new Color(0.3f, 0.3f, 0f);
 				break;
 			case BallColor.GREEN:
 				aux = Color.green;
+				aux += new Color(0.3f, 0f, 0.3f);
 				break;
 		}
 
