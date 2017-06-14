@@ -11,7 +11,7 @@ public class Player : NetworkBehaviour {
 	void Update() {
 		if (!isLocalPlayer)
 			return;
-
+			
 		Command cmd = Command.NONE;
 
 		if (Input.GetKeyDown(KeyCode.LeftArrow)) {

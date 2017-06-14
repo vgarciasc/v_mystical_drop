@@ -25,6 +25,8 @@ public class PlayerOnGrid : NetworkBehaviour {
 	[SyncVar]
 	public int quantity_carried = 0;
 
+	public bool is_having_animation = false;
+
 	[SerializeField]
 	Grid grid;
 	[SerializeField]
@@ -52,6 +54,7 @@ public class PlayerOnGrid : NetworkBehaviour {
 	void CallHook(int num) {
 		Debug.Log("New player connected! Player ID: #" + num);
 		grid = GameObject.FindGameObjectsWithTag("Grid")[num].GetComponent<Grid>();
+		grid.player = this;
 	}
 
 	void Start() {
@@ -124,15 +127,60 @@ public class PlayerOnGrid : NetworkBehaviour {
 	#region Throw
 	[Command]
 	void Cmd_Player_Throw() {
-		grid.Insert_Ball(current_column, quantity_carried, color_carried);
+		//grid.Insert_Ball(current_column, quantity_carried, color_carried);
+		StartCoroutine(Push_Ball_Animation());
 
 		color_carried = BallColor.NONE;
 		quantity_carried = 0;
+
+		Rpc_Player_Throw();
 	}
 
 	[ClientRpc]
 	void Rpc_Player_Throw() {
 		grid.Insert_Ball(current_column, quantity_carried, color_carried);
+	}
+
+	IEnumerator Push_Ball_Animation() {
+		List<Tile> vacant = grid.Get_Vacant_Tiles_In_Column(current_column);
+		List<Tile> use_in_anim = new List<Tile>();
+		List<Tile> will_be_filled = new List<Tile>();
+
+		for (int i = 0; i < quantity_carried; i++) {
+			//the array contains the vacant tiles closest to player to use during animation
+			use_in_anim.Add(vacant[i]);
+			//the array contains the vacant tiles that will be filled by the end of animation
+			will_be_filled.Add(vacant[vacant.Count - 1 - i]);
+		}
+
+		Coroutine animation_to_wait = null;
+
+		for (int i = 0; i < use_in_anim.Count; i++) {
+			Tile tl = use_in_anim[i];
+
+			if (tl.hasBall) {
+				Debug.Log("Game over!");
+			}
+			else {
+				tl.Activate_Ball(color_carried);
+				animation_to_wait = StartCoroutine(tl.Move_To(will_be_filled[will_be_filled.Count - 1 - i], false));
+			}
+		}
+
+		is_having_animation = true;
+		yield return animation_to_wait;
+
+		yield return StartCoroutine(grid.Check_For_Match(vacant[vacant.Count - 1].tile_ID));
+
+		Tile changed = null;
+		while ((changed = grid.Update_Board()) != null) {
+			Debug.Log("X");
+			yield return new WaitForSeconds(0.2f);
+			yield return StartCoroutine(grid.Check_For_Match(changed.tile_ID));
+		}
+
+		is_having_animation = false;
+		yield break;
 	}
 	#endregion
 
@@ -206,11 +254,21 @@ public class PlayerOnGrid : NetworkBehaviour {
 
 	[Command]
 	public void Cmd_Spawn_Line_Of_Balls(int playerID, int[] colors) {
+//		if (grid == null) {
+//			grid = GameObject.FindGameObjectsWithTag("Grid")[playerID].GetComponent<Grid>();
+//		}
+//
+//		StartCoroutine(grid.Spawn_Line_Of_Balls(colors));
+		Rpc_Spawn_Line_Of_Balls(player_ID, colors);
+	}
+
+	[ClientRpc]
+	public void Rpc_Spawn_Line_Of_Balls(int playerID, int[] colors) {
 		if (grid == null) {
 			grid = GameObject.FindGameObjectsWithTag("Grid")[playerID].GetComponent<Grid>();
 		}
 
-		grid.Spawn_Line_Of_Balls(colors);
+		StartCoroutine(grid.Spawn_Line_Of_Balls(colors));
 	}
 
 	public bool Is_Local_Player() {

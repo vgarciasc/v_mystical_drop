@@ -7,8 +7,8 @@ public class Grid : MonoBehaviour {
 	public int grid_ID = -1;
 	public PlayerOnGrid player;
 
-	int columns = 7;
-	int rows = 9;
+	public static int columns = 7;
+	public static int rows = 9;
 
 	[SerializeField]
 	Transform tileContainer;
@@ -20,9 +20,9 @@ public class Grid : MonoBehaviour {
 	void Start () {
 		Init_Tiles();
 
-		//if (Is_Local_Grid()) {
-		//	StartCoroutine(Spawn_Lines());
-		//}
+		if (Is_Local_Grid()) {
+			StartCoroutine(Spawn_Lines());
+		}
 	}
 
 	IEnumerator Spawn_Lines() {
@@ -31,6 +31,7 @@ public class Grid : MonoBehaviour {
 
 		while (true) {
 			yield return new WaitForSeconds(delay);
+			yield return new WaitUntil(() => !player.is_having_animation);
 			time++;
 
 			Request_Spawn_Line_Of_Balls();
@@ -129,12 +130,16 @@ public class Grid : MonoBehaviour {
 		player.Cmd_Spawn_Line_Of_Balls(grid_ID, ball_colors);
 	}
 
-	public void Spawn_Line_Of_Balls(int[] colors) {
+	public IEnumerator Spawn_Line_Of_Balls(int[] colors) {
+		Coroutine move_down_animation = null;
+
 		for (int i = rows - 1; i >= 0; i--) {
 			for (int j = columns - 1; j >= 0; j--) {
-				tiles[i][j].Move_Down();
+				move_down_animation = StartCoroutine(tiles[i][j].Move_Down());
 			}
 		}
+
+		yield return move_down_animation;
 
 		int k = 0;
 		foreach (Tile tile in Get_First_Row()) {
@@ -164,19 +169,30 @@ public class Grid : MonoBehaviour {
 		return aux;
 	}
 
-	Tile Get_First_Vacant_Tile_In_Column(int column) {
+	//starting from the bottom
+	public List<Tile> Get_Vacant_Tiles_In_Column(int column) {
+		List<Tile> output = new List<Tile>();
 		Tile aux;
 
-		for (int i = 0; i < rows; i++) {
+		for (int i = rows - 2; i >= 0; i--) {
 			aux = tiles[i][column];
 
 			if (!aux.hasBall) {
-				return aux;
+				output.Add(aux);
 			}
 		}
 
-		Debug.Log("This should not be happening.");
-		return null;
+		if (output.Count == 0) {
+			Debug.Log("This should not be happening. Column is full!");
+		}
+
+		return output;
+	}
+
+	Tile Get_First_Vacant_Tile_In_Column(int column) {
+		List<Tile> aux = Get_Vacant_Tiles_In_Column(column);
+
+		return aux[aux.Count - 1];
 	}
 
 	public void Insert_Ball(int column, int quantity, BallColor color) {
@@ -193,24 +209,26 @@ public class Grid : MonoBehaviour {
 		}
 		
 		if (tile != null) {
-			Check_For_Match(tile.tile_ID);
+			StartCoroutine(Check_For_Match(tile.tile_ID));
 		}
 	}
 
-	void Check_For_Match(int tile_ID) {
+	public IEnumerator Check_For_Match(int tile_ID) {
 		List<Tile> adjacent_tiles = Get_Adjacent_Same_Color(Get_Tile_by_ID(tile_ID));
+		Coroutine ball_disappearing_animation = null;
 
 		if (adjacent_tiles.Count > 2) {
 			foreach (Tile tl in adjacent_tiles) {
-				tl.Deactivate_Ball();
+				ball_disappearing_animation = StartCoroutine(tl.Disappear());
 			}
 		}
 
-		Update_Board();
+		yield return ball_disappearing_animation;
 	}
 
-	void Update_Board() {
+	public Tile Update_Board() {
 		List<Tile> marked = new List<Tile>();
+		Tile a_tile_that_changed = null;
 
 		for (int i = 0; i < rows; i++) {
 			for (int j = 0; j < columns; j++) {
@@ -221,12 +239,15 @@ public class Grid : MonoBehaviour {
 				}
 
 				Tile below = Get_Ball_Below(aux);
-
 				if (below != null) {
+					a_tile_that_changed = aux;
 					below.Move_To(aux.tile_ID);
 				}
 			}
 		}
+
+		Debug.Log(a_tile_that_changed);
+		return a_tile_that_changed;
 	}
 
 	Tile Get_Ball_Below(Tile tile) {

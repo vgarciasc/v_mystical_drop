@@ -51,13 +51,21 @@ public class Tile : NetworkBehaviour {
 		ballSprite.enabled = false;
 	}
 
-	public void Move_Down() {
+	public IEnumerator Move_Down() {
+//		if (hasBall) {
+//			Deactivate_Ball();
+//			Tile down = grid.Get_Tile_Down(this);
+//
+//			if (down != null) {
+//				down.Activate_Ball(ballColor);
+//			}
+//		}
+
 		if (hasBall) {
-			Deactivate_Ball();
 			Tile down = grid.Get_Tile_Down(this);
 
 			if (down != null) {
-				down.Activate_Ball(ballColor);
+				yield return StartCoroutine(Move_To(down, true));
 			}
 		}
 	}
@@ -75,7 +83,7 @@ public class Tile : NetworkBehaviour {
 	}
 
 	public void Move_To(int tile_ID) {
-		StartCoroutine(Move_To(grid.Get_Tile_by_ID(tile_ID)));
+		StartCoroutine(Move_To(grid.Get_Tile_by_ID(tile_ID), true));
 
 		Cmd_Move_To(tile_ID);
 	}
@@ -87,14 +95,20 @@ public class Tile : NetworkBehaviour {
 
 	[ClientRpc]
 	void Rpc_Move_To(int tile_ID) {
-		StartCoroutine(Move_To(grid.Get_Tile_by_ID(tile_ID)));
+		StartCoroutine(Move_To(grid.Get_Tile_by_ID(tile_ID), true));
 	}
 
-	public IEnumerator Move_To(Tile tile) {
+	public IEnumerator Move_To(Tile tile, bool use_delay_distance) {
 		BallColor color = ballColor;
 		GameObject ball = Instantiate_Ball_For_Anim();
-		float delay = 0.1f * Mathf.Abs((tile_ID - tile.tile_ID) / 7);
-		ball.transform.DOMove(tile.transform.position, delay);
+
+		float delay = 0.1f;
+//		if (use_delay_distance) {
+//			delay *= Mathf.Abs((tile_ID - tile.tile_ID) / Grid.columns);
+//		}
+
+		var tween = ball.transform.DOMove(tile.transform.position, delay);
+		tween.SetEase(Ease.InCirc);
 
 		Deactivate_Ball();
 
@@ -135,5 +149,18 @@ public class Tile : NetworkBehaviour {
 		aux.transform.position = this.transform.position;
 
 		return aux;
+	}
+
+	public IEnumerator Disappear() {
+		float delay = 0.1f;
+
+		Vector3 originalScale = ballSprite.transform.localScale;
+		ballSprite.transform.DOScale(Vector3.zero, delay);
+
+		yield return new WaitForSeconds(delay);
+
+		ballSprite.transform.localScale = originalScale;
+
+		Deactivate_Ball();
 	}
 }
