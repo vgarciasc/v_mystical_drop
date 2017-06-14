@@ -110,11 +110,13 @@ public class PlayerOnGrid : NetworkBehaviour {
 	}
 
 	void Receive_Command(Command cmd) {
-		if (cmd == Command.GRAB) {
+		if (cmd == Command.GRAB &&
+			!is_having_animation) {
 			Cmd_Player_Grab();
 		}
 
-		if (cmd == Command.THROW) {
+		if (cmd == Command.THROW &&
+			!is_having_animation) {
 			Cmd_Player_Throw();
 		}
 
@@ -130,21 +132,23 @@ public class PlayerOnGrid : NetworkBehaviour {
 		//grid.Insert_Ball(current_column, quantity_carried, color_carried);
 		StartCoroutine(Push_Ball_Animation());
 
+//		Rpc_Player_Throw();
+
 		color_carried = BallColor.NONE;
 		quantity_carried = 0;
-
-		Rpc_Player_Throw();
 	}
 
 	[ClientRpc]
 	void Rpc_Player_Throw() {
-		grid.Insert_Ball(current_column, quantity_carried, color_carried);
+		StartCoroutine(Push_Ball_Animation());
 	}
 
 	IEnumerator Push_Ball_Animation() {
 		List<Tile> vacant = grid.Get_Vacant_Tiles_In_Column(current_column);
 		List<Tile> use_in_anim = new List<Tile>();
 		List<Tile> will_be_filled = new List<Tile>();
+
+		is_having_animation = true;
 
 		for (int i = 0; i < quantity_carried; i++) {
 			//the array contains the vacant tiles closest to player to use during animation
@@ -162,22 +166,22 @@ public class PlayerOnGrid : NetworkBehaviour {
 				Debug.Log("Game over!");
 			}
 			else {
-				tl.Activate_Ball(color_carried);
-				animation_to_wait = StartCoroutine(tl.Move_To(will_be_filled[will_be_filled.Count - 1 - i], false));
+				animation_to_wait = StartCoroutine(tl.Push_Animation(will_be_filled[will_be_filled.Count - 1 - i], color_carried));
 			}
 		}
 
-		is_having_animation = true;
 		yield return animation_to_wait;
 
-		yield return StartCoroutine(grid.Check_For_Match(vacant[vacant.Count - 1].tile_ID));
+		yield return grid.Sort_Board();
 
-		Tile changed = null;
-		while ((changed = grid.Update_Board()) != null) {
-			Debug.Log("X");
-			yield return new WaitForSeconds(0.2f);
-			yield return StartCoroutine(grid.Check_For_Match(changed.tile_ID));
-		}
+//		yield return StartCoroutine(grid.Check_For_Match(vacant[vacant.Count - 1].tile_ID));
+//
+//		Tile changed = null;
+//		while ((changed = grid.Update_Board()) != null) {
+//			Debug.Log("X");
+//			yield return new WaitForSeconds(0.2f);
+//			yield return StartCoroutine(grid.Check_For_Match(changed.tile_ID));
+//		}
 
 		is_having_animation = false;
 		yield break;
@@ -216,23 +220,27 @@ public class PlayerOnGrid : NetworkBehaviour {
 
 			Rpc_Player_Grab(ball_tile.tile_ID);
 
-			Grab_Ball_Movement(ball_tile.tile_ID);
+			StartCoroutine(Grab_Ball_Movement(ball_tile.tile_ID));
 			ball_tile.Deactivate_Ball();
 		}
 	}
 
 	[ClientRpc]
 	void Rpc_Player_Grab(int tile_ID) {
-		Grab_Ball_Movement(tile_ID);
+		StartCoroutine(Grab_Ball_Movement(tile_ID));
 	}
 
-	void Grab_Ball_Movement(int tile_ID) {
+	IEnumerator Grab_Ball_Movement(int tile_ID) {
 		GameObject ball = grid.Get_Tile_by_ID(tile_ID).Instantiate_Ball_For_Anim();
 
 		ball.transform.DOMove(this.transform.position, 0.1f);
 		ball.transform.DOScale(new Vector2(0.1f, 0.1f), 0.1f);
 
-		StartCoroutine(Destroy_Ball(ball, 0.1f));
+		is_having_animation = true;
+
+		yield return Destroy_Ball(ball, 0.1f);
+
+		is_having_animation = false;
 	}
 
 	IEnumerator Destroy_Ball(GameObject ball, float duration) {

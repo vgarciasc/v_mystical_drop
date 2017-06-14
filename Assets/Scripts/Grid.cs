@@ -31,7 +31,9 @@ public class Grid : MonoBehaviour {
 
 		while (true) {
 			yield return new WaitForSeconds(delay);
+			yield return new WaitUntil(() => player != null);
 			yield return new WaitUntil(() => !player.is_having_animation);
+
 			time++;
 
 			Request_Spawn_Line_Of_Balls();
@@ -122,12 +124,30 @@ public class Grid : MonoBehaviour {
 	#endregion
 
 	public void Request_Spawn_Line_Of_Balls() {
+		BallColor last_color = BallColor.NONE;
+
 		int[] ball_colors = new int[columns];
 		for (int i = 0; i < columns; i++) {
-			ball_colors[i] = Random.Range(0, System.Enum.GetValues(typeof(BallColor)).Length - 1) ;
+			last_color = Get_Possible_Color(last_color, Get_Tile_Down(Get_First_Row()[i]));
+			ball_colors[i] = (int) last_color;
 		}
 
 		player.Cmd_Spawn_Line_Of_Balls(grid_ID, ball_colors);
+	}
+
+	public BallColor Get_Possible_Color(BallColor last_color, Tile down) {
+		BallColor output = BallColor.NONE;
+		List<BallColor> banned = new List<BallColor>() {last_color};
+
+		if (down.hasBall) {
+			banned.Add(down.ballColor);
+		}
+
+		do {
+			output = (BallColor) Random.Range(0, System.Enum.GetValues(typeof(BallColor)).Length - 1);
+		} while (output == BallColor.NONE || banned.Contains(output));
+
+		return output;
 	}
 
 	public IEnumerator Spawn_Line_Of_Balls(int[] colors) {
@@ -174,7 +194,7 @@ public class Grid : MonoBehaviour {
 		List<Tile> output = new List<Tile>();
 		Tile aux;
 
-		for (int i = rows - 2; i >= 0; i--) {
+		for (int i = rows - 2; i >= 1; i--) {
 			aux = tiles[i][column];
 
 			if (!aux.hasBall) {
@@ -189,46 +209,46 @@ public class Grid : MonoBehaviour {
 		return output;
 	}
 
-	Tile Get_First_Vacant_Tile_In_Column(int column) {
-		List<Tile> aux = Get_Vacant_Tiles_In_Column(column);
-
-		return aux[aux.Count - 1];
-	}
-
-	public void Insert_Ball(int column, int quantity, BallColor color) {
-		if (color == BallColor.NONE) {
-			return;
-		}
-
-		Tile tile = null;
-		for (int i = 0; i < quantity; i++) {
-			tile = Get_First_Vacant_Tile_In_Column(column);
-			if (tile != null) {
-				tile.Activate_Ball(color);
+	public Tile Is_There_Match_On_Board() {
+		foreach (List<Tile> list in tiles) {
+			foreach (Tile tile in list) {
+				if (Get_Adjacent_Same_Color(tile).Count > 2) {
+//					Debug.Log(tile);
+//					Debug.Break();
+					return tile;
+				}
 			}
 		}
-		
-		if (tile != null) {
-			StartCoroutine(Check_For_Match(tile.tile_ID));
+
+		return null;
+	}
+
+	public IEnumerator Sort_Board() {
+		Tile can_match = null;
+
+		while ((can_match = Is_There_Match_On_Board()) != null) {
+			List<Tile> aux = Get_Adjacent_Same_Color(can_match);
+			yield return Disappear_Balls(aux);
+			yield return Update_Board();
 		}
 	}
 
-	public IEnumerator Check_For_Match(int tile_ID) {
-		List<Tile> adjacent_tiles = Get_Adjacent_Same_Color(Get_Tile_by_ID(tile_ID));
+	public IEnumerator Disappear_Balls(List<Tile> balls) {
 		Coroutine ball_disappearing_animation = null;
 
-		if (adjacent_tiles.Count > 2) {
-			foreach (Tile tl in adjacent_tiles) {
-				ball_disappearing_animation = StartCoroutine(tl.Disappear());
-			}
+		foreach (Tile tl in balls) {
+			ball_disappearing_animation = StartCoroutine(tl.Disappear());
 		}
 
-		yield return ball_disappearing_animation;
+		if (ball_disappearing_animation != null) {
+			yield return ball_disappearing_animation;
+		}
+
+		yield break;
 	}
 
-	public Tile Update_Board() {
+	public IEnumerator Update_Board() {
 		List<Tile> marked = new List<Tile>();
-		Tile a_tile_that_changed = null;
 
 		for (int i = 0; i < rows; i++) {
 			for (int j = 0; j < columns; j++) {
@@ -240,14 +260,13 @@ public class Grid : MonoBehaviour {
 
 				Tile below = Get_Ball_Below(aux);
 				if (below != null) {
-					a_tile_that_changed = aux;
 					below.Move_To(aux.tile_ID);
 				}
 			}
 		}
 
-		Debug.Log(a_tile_that_changed);
-		return a_tile_that_changed;
+		//hardcoded. its ugly i know. its the time for the balls to move to their positions
+		yield return new WaitForSeconds(0.2f);
 	}
 
 	Tile Get_Ball_Below(Tile tile) {

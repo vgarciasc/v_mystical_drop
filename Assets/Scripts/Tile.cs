@@ -9,7 +9,7 @@ public enum BallColor {
 	RED,
 	BLUE,
 	GREEN,
-	YELLLOW,
+	YELLOW,
 	NONE
 }
 
@@ -49,6 +49,22 @@ public class Tile : NetworkBehaviour {
 		hasBall = false;
 		ballSprite.color = Color.white;
 		ballSprite.enabled = false;
+//		ballColor = BallColor.NONE;
+	}
+
+	public IEnumerator Push_Animation(Tile target, BallColor color) {
+		GameObject ball = Instantiate_Ball_For_Anim(color);
+		float delay = 0.1f;
+
+		var tween = ball.transform.DOMove(target.transform.position, delay);
+		tween.SetEase(Ease.InCirc);
+
+		yield return new WaitForSeconds(delay);
+
+		Destroy(ball);
+		target.Activate_Ball(color);
+
+		yield break;
 	}
 
 	public IEnumerator Move_Down() {
@@ -100,6 +116,7 @@ public class Tile : NetworkBehaviour {
 
 	public IEnumerator Move_To(Tile tile, bool use_delay_distance) {
 		BallColor color = ballColor;
+		Deactivate_Ball();
 		GameObject ball = Instantiate_Ball_For_Anim();
 
 		float delay = 0.1f;
@@ -109,8 +126,6 @@ public class Tile : NetworkBehaviour {
 
 		var tween = ball.transform.DOMove(tile.transform.position, delay);
 		tween.SetEase(Ease.InCirc);
-
-		Deactivate_Ball();
 
 		yield return new WaitForSeconds(delay);
 
@@ -122,7 +137,7 @@ public class Tile : NetworkBehaviour {
 		Color aux = Color.white;
 
 		switch (ball) {
-			case BallColor.YELLLOW:
+			case BallColor.YELLOW:
 				aux = Color.yellow;
 				aux += new Color(0.3f, 0.3f, 0.3f);
 				break;
@@ -146,6 +161,14 @@ public class Tile : NetworkBehaviour {
 	public GameObject Instantiate_Ball_For_Anim() {
 		GameObject aux = Instantiate(ballPrefab, this.transform.parent.parent, false);
 		aux.GetComponentInChildren<Image>().color = Get_Ball_Color(ballColor);
+		aux.transform.position = this.transform.position;
+
+		return aux;
+	}
+
+	public GameObject Instantiate_Ball_For_Anim(BallColor color) {
+		GameObject aux = Instantiate(ballPrefab, this.transform.parent.parent, false);
+		aux.GetComponentInChildren<Image>().color = Get_Ball_Color(color);
 		aux.transform.position = this.transform.position;
 
 		return aux;
