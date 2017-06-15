@@ -132,7 +132,7 @@ public class PlayerOnGrid : NetworkBehaviour {
 		//grid.Insert_Ball(current_column, quantity_carried, color_carried);
 		StartCoroutine(Push_Ball_Animation());
 
-//		Rpc_Player_Throw();
+		Rpc_Player_Throw();
 
 		color_carried = BallColor.NONE;
 		quantity_carried = 0;
@@ -144,11 +144,11 @@ public class PlayerOnGrid : NetworkBehaviour {
 	}
 
 	IEnumerator Push_Ball_Animation() {
+		is_having_animation = true;
+
 		List<Tile> vacant = grid.Get_Vacant_Tiles_In_Column(current_column);
 		List<Tile> use_in_anim = new List<Tile>();
 		List<Tile> will_be_filled = new List<Tile>();
-
-		is_having_animation = true;
 
 		for (int i = 0; i < quantity_carried; i++) {
 			//the array contains the vacant tiles closest to player to use during animation
@@ -202,7 +202,8 @@ public class PlayerOnGrid : NetworkBehaviour {
 	[ClientRpc]
 	void Rpc_Move(int dest_tile_ID) {
 		Tile dest = grid.Get_Tile_by_ID(dest_tile_ID);
-		this.transform.DOMove(dest.transform.position, 0.1f);
+		this.transform.DOMove(new Vector3(dest.transform.position.x + 3,
+			dest.transform.position.y + 22), 0.1f);
 	}
 	#endregion
 
@@ -221,7 +222,6 @@ public class PlayerOnGrid : NetworkBehaviour {
 			Rpc_Player_Grab(ball_tile.tile_ID);
 
 			StartCoroutine(Grab_Ball_Movement(ball_tile.tile_ID));
-			ball_tile.Deactivate_Ball();
 		}
 	}
 
@@ -231,12 +231,14 @@ public class PlayerOnGrid : NetworkBehaviour {
 	}
 
 	IEnumerator Grab_Ball_Movement(int tile_ID) {
-		GameObject ball = grid.Get_Tile_by_ID(tile_ID).Instantiate_Ball_For_Anim();
+		is_having_animation = true;
+
+		Tile tile = grid.Get_Tile_by_ID(tile_ID);
+		GameObject ball = tile.Instantiate_Ball_For_Anim();
+		tile.Deactivate_Ball();
 
 		ball.transform.DOMove(this.transform.position, 0.1f);
 		ball.transform.DOScale(new Vector2(0.1f, 0.1f), 0.1f);
-
-		is_having_animation = true;
 
 		yield return Destroy_Ball(ball, 0.1f);
 

@@ -27,6 +27,8 @@ public class Tile : NetworkBehaviour {
 	public BallColor ballColor;
 	[SyncVar]
 	public bool hasBall = false;
+	[SyncVar]
+	public bool is_moving = false;
 
 	void Start() {
 		Deactivate_Ball();
@@ -38,6 +40,17 @@ public class Tile : NetworkBehaviour {
 	}
 
 	public void Activate_Ball(BallColor color) {
+		if (hasBall) {
+			//this was already active. what are you trying to do?
+			Tile down = this;
+			do {
+				down = grid.Get_Tile_Down(down);
+			} while (down.hasBall);
+			down.Activate_Ball(color);
+			return;
+		}
+
+		ballSprite.transform.localScale = Vector3.one;
 		ballColor = color;
 		hasBall = true;
 
@@ -68,34 +81,24 @@ public class Tile : NetworkBehaviour {
 	}
 
 	public IEnumerator Move_Down() {
-//		if (hasBall) {
-//			Deactivate_Ball();
-//			Tile down = grid.Get_Tile_Down(this);
-//
-//			if (down != null) {
-//				down.Activate_Ball(ballColor);
-//			}
-//		}
-
 		if (hasBall) {
+			Deactivate_Ball();
 			Tile down = grid.Get_Tile_Down(this);
 
 			if (down != null) {
-				yield return StartCoroutine(Move_To(down, true));
+				down.Activate_Ball(ballColor);
 			}
 		}
-	}
 
-	public void Move_Up() {
-		if (hasBall) {
-			Tile up = grid.Get_Tile_Up(this);
+		yield break;
 
-			if (up != null &&
-				!up.hasBall) {
-				Deactivate_Ball();
-				up.Activate_Ball(ballColor);
-			}
-		}
+//		if (hasBall) {
+//			Tile down = grid.Get_Tile_Down(this);
+//
+//			if (down != null) {
+//				yield return StartCoroutine(Move_To(down, true));
+//			}
+//		}
 	}
 
 	public void Move_To(int tile_ID) {

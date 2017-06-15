@@ -19,29 +19,10 @@ public class Grid : MonoBehaviour {
 	#region initialization
 	void Start () {
 		Init_Tiles();
-
-		if (Is_Local_Grid()) {
-			StartCoroutine(Spawn_Lines());
-		}
-	}
-
-	IEnumerator Spawn_Lines() {
-		float delay = 2f;
-		int time = 0;
-
-		while (true) {
-			yield return new WaitForSeconds(delay);
-			yield return new WaitUntil(() => player != null);
-			yield return new WaitUntil(() => !player.is_having_animation);
-
-			time++;
-
-			Request_Spawn_Line_Of_Balls();
-		}
 	}
 
 	void Update() {
-		if (Input.GetKeyDown(KeyCode.Z) && Is_Local_Grid()) {
+		if (Input.GetKeyDown(KeyCode.Y) && Is_Local_Grid()) {
 			Request_Spawn_Line_Of_Balls();
 		}
 	}
@@ -94,7 +75,7 @@ public class Grid : MonoBehaviour {
 			}
 		}
 
-		Debug.Log("This should not be happening. Game is over.");
+//		Debug.Log("This should not be happening. Game is over.");
 
 		return null;
 	}
@@ -132,7 +113,9 @@ public class Grid : MonoBehaviour {
 			ball_colors[i] = (int) last_color;
 		}
 
-		player.Cmd_Spawn_Line_Of_Balls(grid_ID, ball_colors);
+		if (player != null) {
+			player.Cmd_Spawn_Line_Of_Balls(grid_ID, ball_colors);
+		}
 	}
 
 	public BallColor Get_Possible_Color(BallColor last_color, Tile down) {
@@ -155,11 +138,23 @@ public class Grid : MonoBehaviour {
 
 		for (int i = rows - 1; i >= 0; i--) {
 			for (int j = columns - 1; j >= 0; j--) {
+				if (tiles[i][j].hasBall) {
+					tiles[i][j].is_moving = true;
+				}
+				if (Get_Tile_Down(tiles[i][j]) != null) {
+					Get_Tile_Down(tiles[i][j]).is_moving = true;
+				}
 				move_down_animation = StartCoroutine(tiles[i][j].Move_Down());
 			}
 		}
 
 		yield return move_down_animation;
+
+		for (int i = rows - 1; i >= 0; i--) {
+			for (int j = columns - 1; j >= 0; j--) {
+				tiles[i][j].is_moving = false;
+			}
+		}
 
 		int k = 0;
 		foreach (Tile tile in Get_First_Row()) {
@@ -194,7 +189,7 @@ public class Grid : MonoBehaviour {
 		List<Tile> output = new List<Tile>();
 		Tile aux;
 
-		for (int i = rows - 2; i >= 1; i--) {
+		for (int i = rows - 2; i >= 0; i--) {
 			aux = tiles[i][column];
 
 			if (!aux.hasBall) {
@@ -213,8 +208,8 @@ public class Grid : MonoBehaviour {
 		foreach (List<Tile> list in tiles) {
 			foreach (Tile tile in list) {
 				if (Get_Adjacent_Same_Color(tile).Count > 2) {
-//					Debug.Log(tile);
-//					Debug.Break();
+					Debug.Log(tile);
+					Debug.Break();
 					return tile;
 				}
 			}

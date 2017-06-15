@@ -1,17 +1,25 @@
 fileFormatVersion: 2
-guid: 821725b5e8364a949874c8a4b5ad542d
-timeCreated: 1497494272
+guid: 68f5f23a0a145c042a30f3257a2125e6
+timeCreated: 1497494233
 licenseType: Free
 TextureImporter:
   fileIDToRecycleName:
-    21300000: sheet_hero_idle_0
-    21300002: sheet_hero_idle_1
-    21300004: sheet_hero_idle_2
-    21300006: sheet_hero_idle_3
-    21300008: sheet_hero_idle_4
-    21300010: sheet_hero_idle_5
-    21300012: sheet_hero_idle_6
-    21300014: sheet_hero_idle_7
+    21300000: sheet_hero_dead_0
+    21300002: sheet_hero_dead_1
+    21300004: sheet_hero_dead_2
+    21300006: sheet_hero_dead_3
+    21300008: sheet_hero_dead_4
+    21300010: sheet_hero_dead_5
+    21300012: sheet_hero_dead_6
+    21300014: sheet_hero_dead_7
+    21300016: sheet_hero_dead_8
+    21300018: sheet_hero_dead_9
+    21300020: sheet_hero_dead_10
+    21300022: sheet_hero_dead_11
+    21300024: sheet_hero_dead_12
+    21300026: sheet_hero_dead_13
+    21300028: sheet_hero_dead_14
+    21300030: sheet_hero_dead_15
   serializedVersion: 4
   mipmaps:
     mipMapMode: 0
@@ -43,7 +51,7 @@ TextureImporter:
   lightmap: 0
   compressionQuality: 50
   spriteMode: 2
-  spriteExtrude: 1
+  spriteExtrude: 0
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
@@ -86,7 +94,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: sheet_hero_idle_0
+      name: sheet_hero_dead_0
       rect:
         serializedVersion: 2
         x: 0
@@ -99,7 +107,7 @@ TextureImporter:
       outline: []
       tessellationDetail: 0
     - serializedVersion: 2
-      name: sheet_hero_idle_1
+      name: sheet_hero_dead_1
       rect:
         serializedVersion: 2
         x: 64
@@ -112,7 +120,7 @@ TextureImporter:
       outline: []
       tessellationDetail: 0
     - serializedVersion: 2
-      name: sheet_hero_idle_2
+      name: sheet_hero_dead_2
       rect:
         serializedVersion: 2
         x: 128
@@ -125,7 +133,7 @@ TextureImporter:
       outline: []
       tessellationDetail: 0
     - serializedVersion: 2
-      name: sheet_hero_idle_3
+      name: sheet_hero_dead_3
       rect:
         serializedVersion: 2
         x: 192
@@ -138,7 +146,7 @@ TextureImporter:
       outline: []
       tessellationDetail: 0
     - serializedVersion: 2
-      name: sheet_hero_idle_4
+      name: sheet_hero_dead_4
       rect:
         serializedVersion: 2
         x: 256
@@ -151,7 +159,7 @@ TextureImporter:
       outline: []
       tessellationDetail: 0
     - serializedVersion: 2
-      name: sheet_hero_idle_5
+      name: sheet_hero_dead_5
       rect:
         serializedVersion: 2
         x: 320
@@ -164,7 +172,7 @@ TextureImporter:
       outline: []
       tessellationDetail: 0
     - serializedVersion: 2
-      name: sheet_hero_idle_6
+      name: sheet_hero_dead_6
       rect:
         serializedVersion: 2
         x: 384
@@ -177,7 +185,7 @@ TextureImporter:
       outline: []
       tessellationDetail: 0
     - serializedVersion: 2
-      name: sheet_hero_idle_7
+      name: sheet_hero_dead_7
       rect:
         serializedVersion: 2
         x: 448
