@@ -6,7 +6,7 @@ using UnityEngine;
 using DG.Tweening;
 
 public class SpawningCircle : NetworkBehaviour {
-	public int accumulated_lines = 0;
+    public int accumulated_lines = 0;
 
 	[SerializeField]
     Image sprite;
@@ -24,15 +24,26 @@ public class SpawningCircle : NetworkBehaviour {
     }
 
     public void Spawn() {
-        accumulated_lines--;
+        Cmd_Spawn();
+    }
 
-        if (this.transform.localScale.x > 1) {
-		    sprite.transform.DOScale(this.transform.localScale / 1.5f, 0.2f);
+    [Command]
+    public void Cmd_Spawn() {
+        Rpc_Spawn();
+    }
+
+    [ClientRpc]
+    public void Rpc_Spawn() {
+        if (accumulated_lines > 0) {
+            sprite.transform.DOScale(this.transform.localScale / 1.5f, 0.2f);
+            accumulated_lines--;
         }
-        else {
-		    sprite.DOColor(Color.white, 0.2f);
+
+        if (accumulated_lines == 0) {
+            sprite.DOColor(Color.white, 0.2f);
         }
-	}
+
+    }
 
     public void Add_Line() {
         Cmd_Add_Line();
@@ -45,11 +56,11 @@ public class SpawningCircle : NetworkBehaviour {
 
     [ClientRpc]
 	public void Rpc_Add_Line() {
-		BallColor color = (BallColor) Random.Range(0, System.Enum.GetNames(typeof(BallColor)).Length - 1);
+        accumulated_lines++;
+
+        BallColor color = (BallColor) Random.Range(0, System.Enum.GetNames(typeof(BallColor)).Length - 1);
 		sprite.DOColor(Tile.Get_Ball_Color(color), 0.2f);
 		sprite.transform.DOScale(this.transform.localScale * 1.5f, 0.2f);
-
-        accumulated_lines++;
 
         //StartCoroutine(Spawn());
 	}

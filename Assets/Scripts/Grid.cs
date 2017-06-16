@@ -9,7 +9,7 @@ public class Grid : MonoBehaviour {
 	public PlayerOnGrid player;
 
 	public static int columns = 7;
-	public static int rows = 9;
+	public static int rows = 11;
 
 	[SerializeField]
 	Transform tileContainer;
@@ -285,19 +285,16 @@ public class Grid : MonoBehaviour {
 //		Debug.Log("CD");
 //		Debug.Break();
 //		yield return spawning;
-		Coroutine ball_disappearing_animation = null;
 
 		foreach (Tile tl in balls) {
 			if (!tl.hasBall) {
 				Debug.Log("Erro 1 ??");
 			}
-			ball_disappearing_animation = StartCoroutine(tl.Disappear());
+			tl.Cmd_Disappear();
 		}
 
-		if (ball_disappearing_animation != null) {
-			yield return ball_disappearing_animation;
-		}
-	}
+        yield return new WaitForSeconds(0.3f);
+    }
 
     public IEnumerator Update_Board() {
         List<Tile> marked = new List<Tile>();

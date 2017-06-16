@@ -29,8 +29,10 @@ public class Tile : NetworkBehaviour {
 	public BallColor ballColor;
 	[SyncVar]
 	public bool hasBall = false;
+    [SyncVar]
+    bool is_disappearing = false;
 
-	void Start() {
+    void Start() {
 		Cmd_Deactivate_Ball();
 	}
 
@@ -68,14 +70,16 @@ public class Tile : NetworkBehaviour {
 		ballSprite.color = Get_Ball_Color(ballColor);
 	}
 
+    public void Deactivate_Ball() {
+        hasBall = false;
+        ballSprite.color = Color.white;
+        ballSprite.enabled = false;
+    }
+
     [Command]
 	public void Cmd_Deactivate_Ball() {
-		hasBall = false;
-		ballSprite.color = Color.white;
-		ballSprite.enabled = false;
-        //Debug.Log("E0: " + this);
-//		ballColor = BallColor.NONE;
-	}
+        Deactivate_Ball();
+    }
 
 	public IEnumerator Push_Animation(Tile target, BallColor color) {
 		GameObject ball = Instantiate_Ball_For_Anim(color);
@@ -191,21 +195,30 @@ public class Tile : NetworkBehaviour {
 
 		return aux;
 	}
+    
+    [Command]
+	public void Cmd_Disappear() {
+        //StartCoroutine(Disappear());
+        Rpc_Disappear();
+    }
 
-    bool is_disappearing = false;
+    [ClientRpc]
+    public void Rpc_Disappear() {
+        StartCoroutine(Disappear());
+    }
 
-	public IEnumerator Disappear() {
+    IEnumerator Disappear() {
         is_disappearing = true;
-		float delay = 0.1f;
+        float delay = 0.1f;
 
-		Vector3 originalScale = ballSprite.transform.localScale;
-		ballSprite.transform.DOScale(Vector3.zero, delay);
+        Vector3 originalScale = ballSprite.transform.localScale;
+        ballSprite.transform.DOScale(Vector3.zero, delay);
 
-		yield return new WaitForSeconds(delay);
+        yield return new WaitForSeconds(delay);
 
-		ballSprite.transform.localScale = originalScale;
+        ballSprite.transform.localScale = originalScale;
 
-		Cmd_Deactivate_Ball();
+        Deactivate_Ball();
         is_disappearing = false;
     }
 }

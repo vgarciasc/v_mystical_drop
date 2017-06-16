@@ -328,6 +328,8 @@ public class PlayerOnGrid : NetworkBehaviour {
         }
         game_is_over = true;
 
+        GameObject.FindGameObjectWithTag("BackToLobbyButton").transform.GetChild(0).gameObject.SetActive(true);
+
 		yield return new WaitForSeconds(0.5f);
 
 //		var tween = this.transform.DOMoveY(this.transform.position.y + 50, 0.5f);

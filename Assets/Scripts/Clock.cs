@@ -27,11 +27,11 @@ public class Clock : MonoBehaviour {
 	public event VoidDelegate Gong_Event;
 
 	void Update() {
-		if (stop_the_clock || GameObject.FindGameObjectsWithTag("Player").Length < 2) {
-			return;
-		}
+        if (stop_the_clock || GameObject.FindGameObjectsWithTag("Player").Length < 2) {
+            return;
+        }
 
-		fill += (Time.deltaTime) / cycle_duration_in_seconds;
+        fill += (Time.deltaTime) / cycle_duration_in_seconds;
 
 		circleOutline.fillAmount = fill;
 		circle.fillAmount = fill;
@@ -47,7 +47,8 @@ public class Clock : MonoBehaviour {
 		Reset_Fill();
 
 		GameObject aux = Instantiate(clockPrefab, this.transform.parent, false);
-		aux.transform.DOScale(3 * Vector3.one, 0.4f);
+        aux.transform.position = this.transform.position;
+        aux.transform.DOScale(3 * Vector3.one, 0.4f);
 		aux.GetComponent<Image>().DOColor(Color.clear, 0.4f);
 
 		yield return new WaitForSeconds(0.4f);

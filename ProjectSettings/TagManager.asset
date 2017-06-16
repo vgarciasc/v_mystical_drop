@@ -9,6 +9,7 @@ TagManager:
   - Canvas
   - PlayerGrid
   - Clock
+  - BackToLobbyButton
   layers:
   - Default
   - TransparentFX
