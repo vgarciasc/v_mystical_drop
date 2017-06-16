@@ -1,43 +1,57 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.Networking;
 using UnityEngine.UI;
 using UnityEngine;
 using DG.Tweening;
 
-public class SpawningCircle : MonoBehaviour {
+public class SpawningCircle : NetworkBehaviour {
 	public int accumulated_lines = 0;
-	Image sprite;
 
 	[SerializeField]
-	Grid grid;
+    Image sprite;
+	[SerializeField]
+	Grid grid_ally;
+    [SerializeField]
+    Grid grid_enemy;
 
-	Coroutine spawning = null;
+    public bool can_spawn = false;
 
-	public void Spawn_() {
-		if (spawning != null) {
-			StopCoroutine(spawning);
-		}
+    void Start() {
+        grid_enemy.match_push_event += Add_Line;
+        grid_ally.spawn_lines_event += Spawn;
+        //StartCoroutine(Spawn());
+    }
 
-//		spawning = StartCoroutine(Spawn());
+    public void Spawn() {
+        accumulated_lines--;
+
+        if (this.transform.localScale.x > 1) {
+		    sprite.transform.DOScale(this.transform.localScale / 1.5f, 0.2f);
+        }
+        else {
+		    sprite.DOColor(Color.white, 0.2f);
+        }
 	}
 
-	public IEnumerator Spawn() {
-		for (int i = 0; i < accumulated_lines; i++) {
-			grid.Request_Spawn_Line_Of_Balls();
+    public void Add_Line() {
+        Cmd_Add_Line();
+    }
 
-			sprite.transform.DOScale(this.transform.localScale / 1.25f, 1f);
-			yield return new WaitForSeconds(0.5f);
-		}
+    [Command]
+    public void Cmd_Add_Line() {
+        Rpc_Add_Line();
+    }
 
-		spawning = null;
-	}
-
-	public void Add_Line() {
+    [ClientRpc]
+	public void Rpc_Add_Line() {
 		BallColor color = (BallColor) Random.Range(0, System.Enum.GetNames(typeof(BallColor)).Length - 1);
-		sprite.color = Tile.Get_Ball_Color(color);
-		sprite.transform.DOScale(this.transform.localScale * 1.25f, 1f);
+		sprite.DOColor(Tile.Get_Ball_Color(color), 0.2f);
+		sprite.transform.DOScale(this.transform.localScale * 1.5f, 0.2f);
 
-		accumulated_lines++;
+        accumulated_lines++;
+
+        //StartCoroutine(Spawn());
 	}
 
 	public void Reset_Spawner() {

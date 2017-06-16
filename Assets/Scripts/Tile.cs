@@ -31,24 +31,32 @@ public class Tile : NetworkBehaviour {
 	public bool hasBall = false;
 
 	void Start() {
-		Deactivate_Ball();
+		Cmd_Deactivate_Ball();
 	}
 
 	void Update() {
 		ballSprite.enabled = hasBall;
 		ballSprite.color = Get_Ball_Color(ballColor);
+        if (!is_disappearing) {
+            ballSprite.transform.localScale = Vector3.one;
+        }
 	}
 
-	public void Activate_Ball(BallColor color) {
+    [Command]
+    public void Cmd_Activate_Ball(BallColor color) {
 		if (hasBall) {
-			//this was already active. what are you trying to do?
-//			Debug.Log("X");
-//			Debug.Break();
-			Tile down = this;
+            //this was already active. what are you trying to do?
+            Debug.Log("A1");
+            //Debug.Break();
+            Tile down = this;
 			do {
 				down = grid.Get_Tile_Down(down);
 			} while (down.hasBall);
-			down.Activate_Ball(color);
+            if (down == null) {
+                down = grid.Get_Tile_Up(down);
+            }
+            down.Cmd_Activate_Ball(color);
+           
 			return;
 		}
 
@@ -60,10 +68,12 @@ public class Tile : NetworkBehaviour {
 		ballSprite.color = Get_Ball_Color(ballColor);
 	}
 
-	public void Deactivate_Ball() {
+    [Command]
+	public void Cmd_Deactivate_Ball() {
 		hasBall = false;
 		ballSprite.color = Color.white;
 		ballSprite.enabled = false;
+        //Debug.Log("E0: " + this);
 //		ballColor = BallColor.NONE;
 	}
 
@@ -77,18 +87,18 @@ public class Tile : NetworkBehaviour {
 		yield return new WaitForSeconds(delay);
 
 		Destroy(ball);
-		target.Activate_Ball(color);
+		target.Cmd_Activate_Ball(color);
 
 		yield break;
 	}
 
 	public IEnumerator Move_Down() {
 		if (hasBall) {
-			Deactivate_Ball();
+			Cmd_Deactivate_Ball();
 			Tile down = grid.Get_Tile_Down(this);
 
 			if (down != null) {
-				down.Activate_Ball(ballColor);
+				down.Cmd_Activate_Ball(ballColor);
 			}
 		}
 
@@ -104,8 +114,8 @@ public class Tile : NetworkBehaviour {
 	}
 
 	public void Move_To(int tile_ID) {
-//		StartCoroutine(Move_To(grid.Get_Tile_by_ID(tile_ID), true));
-
+        //		StartCoroutine(Move_To(grid.Get_Tile_by_ID(tile_ID), true));
+        Debug.Log("C0");
 		Cmd_Move_To(tile_ID);
 	}
 
@@ -121,7 +131,7 @@ public class Tile : NetworkBehaviour {
 
 	public IEnumerator Move_To(Tile tile, bool use_delay_distance) {
 		BallColor color = ballColor;
-		Deactivate_Ball();
+		Cmd_Deactivate_Ball();
 //		Debug.Log("X");
 //		Debug.Break();
 		GameObject ball = Instantiate_Ball_For_Anim();
@@ -137,7 +147,8 @@ public class Tile : NetworkBehaviour {
 		yield return new WaitForSeconds(delay);
 
 		Destroy(ball);
-		tile.Activate_Ball(color);
+        Debug.Log("A0");
+		tile.Cmd_Activate_Ball(color);
 	}
 
 	public static Color Get_Ball_Color(BallColor ball) {
@@ -181,7 +192,10 @@ public class Tile : NetworkBehaviour {
 		return aux;
 	}
 
+    bool is_disappearing = false;
+
 	public IEnumerator Disappear() {
+        is_disappearing = true;
 		float delay = 0.1f;
 
 		Vector3 originalScale = ballSprite.transform.localScale;
@@ -191,6 +205,7 @@ public class Tile : NetworkBehaviour {
 
 		ballSprite.transform.localScale = originalScale;
 
-		Deactivate_Ball();
-	}
+		Cmd_Deactivate_Ball();
+        is_disappearing = false;
+    }
 }

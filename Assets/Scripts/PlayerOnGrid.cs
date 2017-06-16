@@ -27,7 +27,7 @@ public class PlayerOnGrid : NetworkBehaviour {
 	
 	public bool is_having_animation = false;
 
-	bool game_is_over = false;
+	public bool game_is_over = false;
 
 	[SerializeField]
 	Grid grid;
@@ -144,12 +144,14 @@ public class PlayerOnGrid : NetworkBehaviour {
 	#region Throw
 	[Command]
 	void Cmd_Player_Throw() {
-		StartCoroutine(Push_Ball_Animation((int) color_carried, quantity_carried));
-		
+        int colorCarried = (int) color_carried;
+        int quantityCarried = quantity_carried;
+
 		color_carried = BallColor.NONE;
 		quantity_carried = 0;
-
-		Rpc_Player_Throw((int) color_carried, quantity_carried);
+		
+        //StartCoroutine(Push_Ball_Animation(colorCarried, quantityCarried));
+		Rpc_Player_Throw(colorCarried, quantityCarried);
 	}
 
 	[ClientRpc]
@@ -158,6 +160,7 @@ public class PlayerOnGrid : NetworkBehaviour {
 	}
 
 	IEnumerator Push_Ball_Animation(int colorCarried, int quantityCarried) {
+        Debug.Log("quantityCarried: " + quantityCarried);
 		is_having_animation = true;
 
 		List<Tile> vacant = grid.Get_Vacant_Tiles_In_Column(current_column);
@@ -176,10 +179,7 @@ public class PlayerOnGrid : NetworkBehaviour {
 		for (int i = 0; i < use_in_anim.Count; i++) {
 			Tile tl = use_in_anim[i];
 
-			if (tl.hasBall) {
-				Debug.Log("Game over!");
-			}
-			else {
+			if (!tl.hasBall) {
 				animation_to_wait = StartCoroutine(tl.Push_Animation(
 					will_be_filled[will_be_filled.Count - 1 - i],
 					(BallColor) colorCarried));
@@ -187,20 +187,9 @@ public class PlayerOnGrid : NetworkBehaviour {
 		}
 
 		yield return animation_to_wait;
-
 		yield return grid.Sort_Board();
 
-//		yield return StartCoroutine(grid.Check_For_Match(vacant[vacant.Count - 1].tile_ID));
-//
-//		Tile changed = null;
-//		while ((changed = grid.Update_Board()) != null) {
-//			Debug.Log("X");
-//			yield return new WaitForSeconds(0.2f);
-//			yield return StartCoroutine(grid.Check_For_Match(changed.tile_ID));
-//		}
-
 		is_having_animation = false;
-		yield break;
 	}
 	#endregion
 
@@ -252,7 +241,7 @@ public class PlayerOnGrid : NetworkBehaviour {
 
 		Tile tile = grid.Get_Tile_by_ID(tile_ID);
 		GameObject ball = tile.Instantiate_Ball_For_Anim();
-		tile.Deactivate_Ball();
+		tile.Cmd_Deactivate_Ball();
 
 		ball.transform.DOMove(this.transform.position, 0.1f);
 		ball.transform.DOScale(new Vector2(0.1f, 0.1f), 0.1f);
@@ -330,10 +319,15 @@ public class PlayerOnGrid : NetworkBehaviour {
 		}
 		else {
 			this.GetComponent<Animator>().SetTrigger("dead");
-		}
+        }
 
-		grid.Game_Over(victory);
-		clock.stop_the_clock = game_is_over = true;
+        quantity_carried = 0;
+        grid.Game_Over(victory);
+        if (clock != null) {
+            clock.stop_the_clock = true;
+        }
+        game_is_over = true;
+
 		yield return new WaitForSeconds(0.5f);
 
 //		var tween = this.transform.DOMoveY(this.transform.position.y + 50, 0.5f);
@@ -344,4 +338,20 @@ public class PlayerOnGrid : NetworkBehaviour {
 //		tween = this.transform.DOMoveY(this.transform.position.y - 150, 0.75f);
 //		tween.SetEase(Ease.Flash);
 	}
+
+    public IEnumerator Receive_Push() {
+        yield return new WaitForSeconds(2.0f);
+
+        grid.Request_Spawn_Line_Of_Balls();
+    }
+
+    public PlayerOnGrid Get_Other_Player() {
+        foreach (GameObject player in GameObject.FindGameObjectsWithTag("Player")) {
+            if (player.GetComponent<PlayerOnGrid>().player_ID != this.player_ID) {
+                return player.GetComponent<PlayerOnGrid>();
+            }
+        }
+
+        return null;
+    }
 }

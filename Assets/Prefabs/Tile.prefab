@@ -81,6 +81,7 @@ MonoBehaviour:
   grid: {fileID: 0}
   ballSprite: {fileID: 114417698978004152}
   ballPrefab: {fileID: 1960209550266104, guid: 65ff2ea31b8b25a4f969c9eb64774cbc, type: 2}
+  is_moving: 0
   ballColor: 4
   hasBall: 0
 --- !u!114 &114417698978004152
@@ -102,7 +103,7 @@ MonoBehaviour:
       m_Calls: []
     m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
       Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-  m_Sprite: {fileID: 21300000, guid: 8a05596b87b442a48b95e8170374e9ce, type: 3}
+  m_Sprite: {fileID: 21300000, guid: f84efca96da28cd4abdacbae09fcfb45, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1

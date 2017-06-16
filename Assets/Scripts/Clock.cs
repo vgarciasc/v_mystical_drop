@@ -27,7 +27,7 @@ public class Clock : MonoBehaviour {
 	public event VoidDelegate Gong_Event;
 
 	void Update() {
-		if (stop_the_clock) {
+		if (stop_the_clock || GameObject.FindGameObjectsWithTag("Player").Length < 2) {
 			return;
 		}
 
@@ -54,9 +54,9 @@ public class Clock : MonoBehaviour {
 
 		Destroy(aux);
 
-		foreach (SpawningCircle spawner in spawners) {
-			spawner.Spawn_();
-		}
+		//foreach (SpawningCircle spawner in spawners) {
+            //spawner.StartCoroutine(Spawn());
+		//}
 
 		if (Gong_Event != null) {
 			Gong_Event();
