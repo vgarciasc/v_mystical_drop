@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.Networking;
+using UnityEngine.UI;
 using UnityEngine;
 
 public class Grid : MonoBehaviour {
@@ -14,6 +15,11 @@ public class Grid : MonoBehaviour {
 	Transform tileContainer;
 
 	[SerializeField]
+	Text victoryLossText;
+	[SerializeField]
+	Image victoryLossBackground;
+
+	[SerializeField]
 	List<List<Tile>> tiles = new List<List<Tile>>();
 
 	#region initialization
@@ -24,6 +30,12 @@ public class Grid : MonoBehaviour {
 	void Update() {
 		if (Input.GetKeyDown(KeyCode.Y) && Is_Local_Grid()) {
 			Request_Spawn_Line_Of_Balls();
+		}
+
+		foreach (Tile tile in Get_Last_Row()) {
+			if (tile.hasBall) {
+				player.Cmd_Game_Over();
+			}
 		}
 	}
 
@@ -136,25 +148,15 @@ public class Grid : MonoBehaviour {
 	public IEnumerator Spawn_Line_Of_Balls(int[] colors) {
 		Coroutine move_down_animation = null;
 
+		yield return new WaitUntil(() => !sorting_board);
+
 		for (int i = rows - 1; i >= 0; i--) {
 			for (int j = columns - 1; j >= 0; j--) {
-				if (tiles[i][j].hasBall) {
-					tiles[i][j].is_moving = true;
-				}
-				if (Get_Tile_Down(tiles[i][j]) != null) {
-					Get_Tile_Down(tiles[i][j]).is_moving = true;
-				}
 				move_down_animation = StartCoroutine(tiles[i][j].Move_Down());
 			}
 		}
 
 		yield return move_down_animation;
-
-		for (int i = rows - 1; i >= 0; i--) {
-			for (int j = columns - 1; j >= 0; j--) {
-				tiles[i][j].is_moving = false;
-			}
-		}
 
 		int k = 0;
 		foreach (Tile tile in Get_First_Row()) {
@@ -207,9 +209,10 @@ public class Grid : MonoBehaviour {
 	public Tile Is_There_Match_On_Board() {
 		foreach (List<Tile> list in tiles) {
 			foreach (Tile tile in list) {
-				if (Get_Adjacent_Same_Color(tile).Count > 2) {
-					Debug.Log(tile);
-					Debug.Break();
+				List<Tile> adjacent = Get_Adjacent_Same_Color(tile);
+				if (adjacent != null && adjacent.Count > 2) {
+//					Debug.Log(tile);
+//					Debug.Break();
 					return tile;
 				}
 			}
@@ -218,7 +221,9 @@ public class Grid : MonoBehaviour {
 		return null;
 	}
 
+	bool sorting_board = false;
 	public IEnumerator Sort_Board() {
+		sorting_board = true;
 		Tile can_match = null;
 
 		while ((can_match = Is_There_Match_On_Board()) != null) {
@@ -226,20 +231,26 @@ public class Grid : MonoBehaviour {
 			yield return Disappear_Balls(aux);
 			yield return Update_Board();
 		}
+
+		sorting_board = false;
 	}
 
 	public IEnumerator Disappear_Balls(List<Tile> balls) {
+//		Debug.Log("CD");
+//		Debug.Break();
+//		yield return spawning;
 		Coroutine ball_disappearing_animation = null;
 
 		foreach (Tile tl in balls) {
+			if (!tl.hasBall) {
+				Debug.Log("Erro 1 ??");
+			}
 			ball_disappearing_animation = StartCoroutine(tl.Disappear());
 		}
 
 		if (ball_disappearing_animation != null) {
 			yield return ball_disappearing_animation;
 		}
-
-		yield break;
 	}
 
 	public IEnumerator Update_Board() {
@@ -255,6 +266,8 @@ public class Grid : MonoBehaviour {
 
 				Tile below = Get_Ball_Below(aux);
 				if (below != null) {
+//					Debug.Log(below);
+//					Debug.Break();
 					below.Move_To(aux.tile_ID);
 				}
 			}
@@ -281,6 +294,11 @@ public class Grid : MonoBehaviour {
 
 	List<Tile> Get_Adjacent_Same_Color(Tile tile) {
 		List<Tile> marked = new List<Tile>() { tile };
+		if (!tile.hasBall) {
+			//tile provided does not have a color
+			return null;
+		}
+
 		BallColor color = tile.ballColor;
 		Tile next_tile;
 		
@@ -339,4 +357,17 @@ public class Grid : MonoBehaviour {
 	}
 
 	#endregion
+
+	public void Game_Over(bool victory) {
+		victoryLossText.enabled = true;
+
+		if (victory) {
+			victoryLossText.text = "YOU WIN";
+		}
+		else {
+			victoryLossText.text = "YOU LOSE";
+		}
+
+		victoryLossBackground.enabled = true;
+	}
 }

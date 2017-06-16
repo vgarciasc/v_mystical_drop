@@ -15,7 +15,6 @@ public class Server : NetworkBehaviour {
 	IEnumerator SpawnBalls() {
 		while (true) {
 			yield return new WaitForSeconds(1.0f);
-
 		}
 	}
 }

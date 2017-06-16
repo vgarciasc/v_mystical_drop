@@ -14,13 +14,11 @@ public class SpawningCircle : MonoBehaviour {
 	Coroutine spawning = null;
 
 	public void Spawn_() {
-		grid.Request_Spawn_Line_Of_Balls();
-
 		if (spawning != null) {
 			StopCoroutine(spawning);
 		}
 
-		spawning = StartCoroutine(Spawn());
+//		spawning = StartCoroutine(Spawn());
 	}
 
 	public IEnumerator Spawn() {

@@ -1,6 +1,6 @@
 fileFormatVersion: 2
 guid: 68f5f23a0a145c042a30f3257a2125e6
-timeCreated: 1497494233
+timeCreated: 1497585215
 licenseType: Free
 TextureImporter:
   fileIDToRecycleName:
@@ -102,9 +102,17 @@ TextureImporter:
         width: 64
         height: 64
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
+      outline:
+      - - {x: -21, y: -31}
+        - {x: -20, y: -32}
+        - {x: 14, y: -32}
+        - {x: 14, y: -10}
+        - {x: 13, y: -9}
+        - {x: 2, y: 0}
+        - {x: -5, y: 0}
+        - {x: -21, y: -25}
       tessellationDetail: 0
     - serializedVersion: 2
       name: sheet_hero_dead_1
@@ -115,9 +123,18 @@ TextureImporter:
         width: 64
         height: 64
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
+      outline:
+      - - {x: -5, y: 1}
+        - {x: -7, y: 0}
+        - {x: -20, y: -15}
+        - {x: -20, y: -27}
+        - {x: -16, y: -32}
+        - {x: 12, y: -32}
+        - {x: 15, y: -30}
+        - {x: 15, y: -8}
+        - {x: 6, y: 1}
       tessellationDetail: 0
     - serializedVersion: 2
       name: sheet_hero_dead_2
@@ -128,9 +145,21 @@ TextureImporter:
         width: 64
         height: 64
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
+      outline:
+      - - {x: 12, y: 10}
+        - {x: 9, y: 10}
+        - {x: 5, y: 6}
+        - {x: 5, y: 4}
+        - {x: -13, y: 2}
+        - {x: -17, y: -11}
+        - {x: -19, y: -16}
+        - {x: -19, y: -29}
+        - {x: -15, y: -32}
+        - {x: 11, y: -32}
+        - {x: 17, y: -23}
+        - {x: 17, y: 5}
       tessellationDetail: 0
     - serializedVersion: 2
       name: sheet_hero_dead_3
@@ -141,9 +170,23 @@ TextureImporter:
         width: 64
         height: 64
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
+      outline:
+      - - {x: -12, y: 1}
+        - {x: -15, y: -1}
+        - {x: -19, y: -25}
+        - {x: -19, y: -31}
+        - {x: -18, y: -32}
+        - {x: 19, y: -32}
+        - {x: 19, y: -23}
+        - {x: 0, y: 1}
+      - - {x: 12, y: 9}
+        - {x: 3, y: 9}
+        - {x: 3, y: -11}
+        - {x: 14, y: -11}
+        - {x: 17, y: -5}
+        - {x: 17, y: 7}
       tessellationDetail: 0
     - serializedVersion: 2
       name: sheet_hero_dead_4
@@ -154,9 +197,31 @@ TextureImporter:
         width: 64
         height: 64
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
+      outline:
+      - - {x: 2, y: 1}
+        - {x: -10, y: 1}
+        - {x: -16, y: -3}
+        - {x: -20, y: -18}
+        - {x: -20, y: -32}
+        - {x: 20, y: -32}
+        - {x: 20, y: -24}
+        - {x: 13, y: -10}
+      - - {x: 10, y: -7}
+        - {x: 13, y: -6}
+        - {x: 13, y: -3}
+        - {x: 10, y: -2}
+        - {x: 8, y: -4}
+      - - {x: 11, y: 11}
+        - {x: 5, y: 11}
+        - {x: 2, y: 6}
+        - {x: 2, y: 2}
+        - {x: 6, y: -1}
+        - {x: 12, y: -2}
+        - {x: 15, y: -2}
+        - {x: 16, y: -1}
+        - {x: 16, y: 8}
       tessellationDetail: 0
     - serializedVersion: 2
       name: sheet_hero_dead_5
@@ -167,9 +232,41 @@ TextureImporter:
         width: 64
         height: 64
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
+      outline:
+      - - {x: -7, y: 1}
+        - {x: -12, y: -2}
+        - {x: -12, y: -32}
+        - {x: 19, y: -32}
+        - {x: 19, y: -21}
+        - {x: 0, y: 1}
+      - - {x: -18, y: -26}
+        - {x: -18, y: -28}
+        - {x: -17, y: -30}
+        - {x: -14, y: -30}
+        - {x: -12, y: -29}
+        - {x: -12, y: -26}
+        - {x: -14, y: -24}
+        - {x: -16, y: -24}
+      - - {x: 10, y: -7}
+        - {x: 13, y: -6}
+        - {x: 13, y: -3}
+        - {x: 10, y: -2}
+        - {x: 8, y: -4}
+      - - {x: 12, y: -1}
+        - {x: 15, y: 0}
+        - {x: 15, y: 3}
+        - {x: 12, y: 4}
+        - {x: 10, y: 2}
+      - - {x: 6, y: 10}
+        - {x: 4, y: 8}
+        - {x: 4, y: 5}
+        - {x: 6, y: 3}
+        - {x: 9, y: 3}
+        - {x: 11, y: 5}
+        - {x: 11, y: 8}
+        - {x: 9, y: 10}
       tessellationDetail: 0
     - serializedVersion: 2
       name: sheet_hero_dead_6
@@ -180,9 +277,38 @@ TextureImporter:
         width: 64
         height: 64
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
+      outline:
+      - - {x: -3, y: -2}
+        - {x: -11, y: -12}
+        - {x: -12, y: -32}
+        - {x: 12, y: -32}
+        - {x: 12, y: -15}
+        - {x: 2, y: -2}
+      - - {x: -15, y: -29}
+        - {x: -12, y: -28}
+        - {x: -12, y: -25}
+        - {x: -15, y: -24}
+        - {x: -17, y: -26}
+      - - {x: 15, y: -29}
+        - {x: 18, y: -28}
+        - {x: 18, y: -25}
+        - {x: 15, y: -24}
+        - {x: 13, y: -26}
+      - - {x: -5, y: -4}
+        - {x: -2, y: -3}
+        - {x: -2, y: 0}
+        - {x: -5, y: 1}
+        - {x: -7, y: -1}
+      - - {x: 6, y: 10}
+        - {x: 4, y: 8}
+        - {x: 4, y: 6}
+        - {x: 6, y: 4}
+        - {x: 8, y: 4}
+        - {x: 10, y: 6}
+        - {x: 10, y: 8}
+        - {x: 8, y: 10}
       tessellationDetail: 0
     - serializedVersion: 2
       name: sheet_hero_dead_7
@@ -193,9 +319,20 @@ TextureImporter:
         width: 64
         height: 64
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
+      outline:
+      - - {x: -3, y: -2}
+        - {x: -11, y: -12}
+        - {x: -12, y: -32}
+        - {x: 12, y: -32}
+        - {x: 12, y: -15}
+        - {x: 2, y: -2}
+      - - {x: 6, y: 5}
+        - {x: 9, y: 6}
+        - {x: 1.9883423, y: 7.625164}
+        - {x: -3.8988342, y: 11.374836}
+        - {x: -0.5369568, y: 7.1750984}
       tessellationDetail: 0
     outline: []
   spritePackingTag: 

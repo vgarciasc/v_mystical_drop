@@ -23,12 +23,12 @@ public class Tile : NetworkBehaviour {
 	[SerializeField]
 	GameObject ballPrefab;
 
+	public bool is_moving = false;
+
 	[SyncVar]
 	public BallColor ballColor;
 	[SyncVar]
 	public bool hasBall = false;
-	[SyncVar]
-	public bool is_moving = false;
 
 	void Start() {
 		Deactivate_Ball();
@@ -42,6 +42,8 @@ public class Tile : NetworkBehaviour {
 	public void Activate_Ball(BallColor color) {
 		if (hasBall) {
 			//this was already active. what are you trying to do?
+//			Debug.Log("X");
+//			Debug.Break();
 			Tile down = this;
 			do {
 				down = grid.Get_Tile_Down(down);
@@ -102,7 +104,7 @@ public class Tile : NetworkBehaviour {
 	}
 
 	public void Move_To(int tile_ID) {
-		StartCoroutine(Move_To(grid.Get_Tile_by_ID(tile_ID), true));
+//		StartCoroutine(Move_To(grid.Get_Tile_by_ID(tile_ID), true));
 
 		Cmd_Move_To(tile_ID);
 	}
@@ -120,6 +122,8 @@ public class Tile : NetworkBehaviour {
 	public IEnumerator Move_To(Tile tile, bool use_delay_distance) {
 		BallColor color = ballColor;
 		Deactivate_Ball();
+//		Debug.Log("X");
+//		Debug.Break();
 		GameObject ball = Instantiate_Ball_For_Anim();
 
 		float delay = 0.1f;

@@ -24,11 +24,15 @@ public class PlayerOnGrid : NetworkBehaviour {
 	public BallColor color_carried = BallColor.NONE;
 	[SyncVar]
 	public int quantity_carried = 0;
-
+	
 	public bool is_having_animation = false;
+
+	bool game_is_over = false;
 
 	[SerializeField]
 	Grid grid;
+	[SerializeField]
+	Clock clock;
 	[SerializeField]
 	Image ball;
 
@@ -54,6 +58,7 @@ public class PlayerOnGrid : NetworkBehaviour {
 	void CallHook(int num) {
 		Debug.Log("New player connected! Player ID: #" + num);
 		grid = GameObject.FindGameObjectsWithTag("Grid")[num].GetComponent<Grid>();
+
 		grid.player = this;
 	}
 
@@ -63,6 +68,8 @@ public class PlayerOnGrid : NetworkBehaviour {
 
 		if (isLocalPlayer) {
 			Cmd_Move(grid.Get_Player_Initial_Position().tile_ID);
+			clock = GameObject.FindGameObjectWithTag("Clock").GetComponent<Clock>();
+			clock.Gong_Event += grid.Request_Spawn_Line_Of_Balls;
 		}
 	}
 
@@ -77,6 +84,10 @@ public class PlayerOnGrid : NetworkBehaviour {
 
 		if (!isLocalPlayer)
 			return;
+
+		if (Input.GetKeyDown(KeyCode.G)) {
+			Cmd_Game_Over();
+		}
 
 		Command cmd = Command.NONE;
 
@@ -110,6 +121,10 @@ public class PlayerOnGrid : NetworkBehaviour {
 	}
 
 	void Receive_Command(Command cmd) {
+		if (game_is_over) {
+			return;
+		}
+
 		if (cmd == Command.GRAB &&
 			!is_having_animation) {
 			Cmd_Player_Grab();
@@ -129,28 +144,27 @@ public class PlayerOnGrid : NetworkBehaviour {
 	#region Throw
 	[Command]
 	void Cmd_Player_Throw() {
-		//grid.Insert_Ball(current_column, quantity_carried, color_carried);
-		StartCoroutine(Push_Ball_Animation());
-
-		Rpc_Player_Throw();
-
+		StartCoroutine(Push_Ball_Animation((int) color_carried, quantity_carried));
+		
 		color_carried = BallColor.NONE;
 		quantity_carried = 0;
+
+		Rpc_Player_Throw((int) color_carried, quantity_carried);
 	}
 
 	[ClientRpc]
-	void Rpc_Player_Throw() {
-		StartCoroutine(Push_Ball_Animation());
+	void Rpc_Player_Throw(int colorCarried, int quantityCarried) {
+		StartCoroutine(Push_Ball_Animation(colorCarried, quantityCarried));
 	}
 
-	IEnumerator Push_Ball_Animation() {
+	IEnumerator Push_Ball_Animation(int colorCarried, int quantityCarried) {
 		is_having_animation = true;
 
 		List<Tile> vacant = grid.Get_Vacant_Tiles_In_Column(current_column);
 		List<Tile> use_in_anim = new List<Tile>();
 		List<Tile> will_be_filled = new List<Tile>();
 
-		for (int i = 0; i < quantity_carried; i++) {
+		for (int i = 0; i < quantityCarried; i++) {
 			//the array contains the vacant tiles closest to player to use during animation
 			use_in_anim.Add(vacant[i]);
 			//the array contains the vacant tiles that will be filled by the end of animation
@@ -166,7 +180,9 @@ public class PlayerOnGrid : NetworkBehaviour {
 				Debug.Log("Game over!");
 			}
 			else {
-				animation_to_wait = StartCoroutine(tl.Push_Animation(will_be_filled[will_be_filled.Count - 1 - i], color_carried));
+				animation_to_wait = StartCoroutine(tl.Push_Animation(
+					will_be_filled[will_be_filled.Count - 1 - i],
+					(BallColor) colorCarried));
 			}
 		}
 
@@ -194,7 +210,8 @@ public class PlayerOnGrid : NetworkBehaviour {
 		Tile dest = grid.Get_Tile_by_ID(dest_tile_ID);
 
 		current_column = (dest.tile_ID) % 7;
-		this.transform.DOMove(dest.transform.position, 0.1f);
+		this.transform.DOMove(new Vector3(dest.transform.position.x + 3,
+			dest.transform.position.y + 22), 0.1f);
 
 		Rpc_Move(dest_tile_ID);
 	}
@@ -283,5 +300,48 @@ public class PlayerOnGrid : NetworkBehaviour {
 
 	public bool Is_Local_Player() {
 		return isLocalPlayer;
+	}
+
+	[Command]
+	public void Cmd_Game_Over() {
+		StartCoroutine(Game_Over(false));
+		foreach (GameObject player in GameObject.FindGameObjectsWithTag("Player")) {
+			if (player.GetComponent<PlayerOnGrid>().player_ID != this.player_ID) {
+				StartCoroutine(player.GetComponent<PlayerOnGrid>().Game_Over(true));
+			}
+		}
+
+		Rpc_Game_Over();
+	}
+
+	[ClientRpc]
+	public void Rpc_Game_Over() {
+		StartCoroutine(Game_Over(false));
+		foreach (GameObject player in GameObject.FindGameObjectsWithTag("Player")) {
+			if (player.GetComponent<PlayerOnGrid>().player_ID != this.player_ID) {
+				StartCoroutine(player.GetComponent<PlayerOnGrid>().Game_Over(true));
+			}
+		}
+	}
+
+	public IEnumerator Game_Over(bool victory) {
+		if (victory) {
+			this.GetComponent<Animator>().SetTrigger("victory");
+		}
+		else {
+			this.GetComponent<Animator>().SetTrigger("dead");
+		}
+
+		grid.Game_Over(victory);
+		clock.stop_the_clock = game_is_over = true;
+		yield return new WaitForSeconds(0.5f);
+
+//		var tween = this.transform.DOMoveY(this.transform.position.y + 50, 0.5f);
+//		tween.SetEase(Ease.Flash);
+//
+//		yield return new WaitForSeconds(0.5f);
+//
+//		tween = this.transform.DOMoveY(this.transform.position.y - 150, 0.75f);
+//		tween.SetEase(Ease.Flash);
 	}
 }
