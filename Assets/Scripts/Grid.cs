@@ -23,6 +23,10 @@ public class Grid : MonoBehaviour {
 
 	[SerializeField]
 	List<List<Tile>> tiles = new List<List<Tile>>();
+	[SerializeField]
+	AudioClip sfx_match;
+
+	AudioSource grid_audio;
 
     public delegate void VoidDelegate();
     public event VoidDelegate match_push_event,
@@ -30,6 +34,8 @@ public class Grid : MonoBehaviour {
 
     #region initialization
     void Start () {
+		grid_audio = this.GetComponent<AudioSource>();
+
 		Init_Tiles();
 	}
 
@@ -43,24 +49,6 @@ public class Grid : MonoBehaviour {
 				player.Cmd_Game_Over();
 			}
 		}
-
-        //foreach (List<Tile> list in tiles) {
-        //    bool all_empty = true;
-
-        //    foreach (Tile tile in list) {
-        //        all_empty = tile.hasBall;
-        //    }
-
-        //    if (all_empty) {
-        //        foreach (Tile tile in list) {
-        //            if (Get_Tile_Down(tile) != null &&
-        //                Get_Tile_Down(tile).hasBall) {
-        //                StartCoroutine(Sort_Board());
-        //                break;
-        //            }
-        //        }
-        //    }
-        //}
 	}
 
 	bool Is_Local_Grid() {
@@ -260,6 +248,7 @@ public class Grid : MonoBehaviour {
 
 		while ((can_match = Is_There_Match_On_Board()) != null) {
 			List<Tile> aux = Get_Adjacent_Same_Color(can_match);
+			grid_audio.PlayOneShot(sfx_match);
 			yield return Disappear_Balls(aux);
 			yield return Update_Board();
             

@@ -29,6 +29,6 @@ public class NetworkHUD : MonoBehaviour {
     }
 
     public void GoToLobby() {
-        SceneManager.LoadScene("Lobby");
+        nm.ServerChangeScene(nm.onlineScene);
     }
 }

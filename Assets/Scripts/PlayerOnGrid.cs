@@ -35,6 +35,12 @@ public class PlayerOnGrid : NetworkBehaviour {
 	Clock clock;
 	[SerializeField]
 	Image ball;
+	[SerializeField]
+	AudioClip sfx_grab;
+	[SerializeField]
+	AudioClip sfx_throw;
+
+	AudioSource player_audio;
 
 	public override void OnStartLocalPlayer() {
 		int length = GameObject.FindGameObjectsWithTag("Player").Length;
@@ -63,6 +69,8 @@ public class PlayerOnGrid : NetworkBehaviour {
 	}
 
 	void Start() {
+		player_audio = this.GetComponent<AudioSource>();
+
 		this.transform.SetParent(GameObject.FindGameObjectWithTag("Canvas").transform, false);
 		grid = GameObject.FindGameObjectsWithTag("Grid")[player_ID].GetComponent<Grid>();
 
@@ -78,6 +86,9 @@ public class PlayerOnGrid : NetworkBehaviour {
 		player_ID = ID;
 	}
 
+	float last_press;
+	float cooldown = 0.13f;
+
 	void Update() {
 		ball.enabled = quantity_carried > 0;
 		ball.color = Tile.Get_Ball_Color(color_carried);
@@ -91,11 +102,13 @@ public class PlayerOnGrid : NetworkBehaviour {
 
 		Command cmd = Command.NONE;
 
-		if (Input.GetKeyDown(KeyCode.LeftArrow)) {
+		if (Input.GetKey(KeyCode.LeftArrow) && Time.time - last_press > cooldown) {
+			last_press = Time.time;
 			cmd = Command.MOVE_LEFT;
 		}
 
-		if (Input.GetKeyDown(KeyCode.RightArrow)) {
+		if (Input.GetKey(KeyCode.RightArrow) && Time.time - last_press > cooldown) {
+			last_press = Time.time;
 			cmd = Command.MOVE_RIGHT;
 		}
 
@@ -160,7 +173,7 @@ public class PlayerOnGrid : NetworkBehaviour {
 	}
 
 	IEnumerator Push_Ball_Animation(int colorCarried, int quantityCarried) {
-        Debug.Log("quantityCarried: " + quantityCarried);
+		player_audio.PlayOneShot(sfx_throw);
 		is_having_animation = true;
 
 		List<Tile> vacant = grid.Get_Vacant_Tiles_In_Column(current_column);
@@ -237,6 +250,7 @@ public class PlayerOnGrid : NetworkBehaviour {
 	}
 
 	IEnumerator Grab_Ball_Movement(int tile_ID) {
+		player_audio.PlayOneShot(sfx_grab);
 		is_having_animation = true;
 
 		Tile tile = grid.Get_Tile_by_ID(tile_ID);
@@ -341,10 +355,16 @@ public class PlayerOnGrid : NetworkBehaviour {
 //		tween.SetEase(Ease.Flash);
 	}
 
-    public IEnumerator Receive_Push() {
-        yield return new WaitForSeconds(2.0f);
+	int push_received = 0;
 
-        grid.Request_Spawn_Line_Of_Balls();
+    public IEnumerator Receive_Push() {
+        push_received++;
+		
+		yield return new WaitForSeconds(2.0f);
+
+		if (push_received % 2 == 0) {
+	        grid.Request_Spawn_Line_Of_Balls();
+		}
     }
 
     public PlayerOnGrid Get_Other_Player() {
