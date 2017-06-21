@@ -48,7 +48,7 @@ public class Tile : NetworkBehaviour {
     public void Cmd_Activate_Ball(BallColor color) {
 		if (hasBall) {
             //this was already active. what are you trying to do?
-            Debug.Log("A1");
+            //Debug.Log("A1");
             //Debug.Break();
             Tile down = this;
 			do {
@@ -119,7 +119,7 @@ public class Tile : NetworkBehaviour {
 
 	public void Move_To(int tile_ID) {
         //		StartCoroutine(Move_To(grid.Get_Tile_by_ID(tile_ID), true));
-        Debug.Log("C0");
+        //Debug.Log("C0");
 		Cmd_Move_To(tile_ID);
 	}
 
@@ -151,7 +151,7 @@ public class Tile : NetworkBehaviour {
 		yield return new WaitForSeconds(delay);
 
 		Destroy(ball);
-        Debug.Log("A0");
+        //Debug.Log("A0");
 		tile.Cmd_Activate_Ball(color);
 	}
 

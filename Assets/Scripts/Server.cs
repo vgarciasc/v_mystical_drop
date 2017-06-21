@@ -4,17 +4,12 @@ using UnityEngine.Networking;
 using UnityEngine.UI;
 using UnityEngine;
 
-public class Server : NetworkBehaviour {
+public class Server : MonoBehaviour {
 	void Start() {
-		StartCoroutine(SpawnBalls());
+		Screen.SetResolution(1280, 720, false);
+		Application.targetFrameRate = 60;
 	}
 
 	void Update() {
-	}
-
-	IEnumerator SpawnBalls() {
-		while (true) {
-			yield return new WaitForSeconds(1.0f);
-		}
 	}
 }
